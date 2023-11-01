@@ -1,0 +1,22 @@
+players = [{"x":"0","y":"0","damage":"","animation":"walk","frame":"0","max_frame":"5"}]
+
+def "step"
+  player_count = 0
+  loop players.len (
+    player_count += 1
+    current = players.[player_count]
+    goto current.key("x") current.key("x")
+    square 40 20 10 : c#fff
+    current.key("frame") += 1
+    if current.key("frame") > current.key("max_frame") (
+      current.key("frame") = 0
+    )
+    players.[player_count] = current
+  )
+endef
+
+mainloop:
+
+loop gamepads.len (
+  icon "controller"
+)

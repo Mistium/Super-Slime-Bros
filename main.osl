@@ -1,31 +1,63 @@
-players = [{"x":"0","y":"0","damage":"","animation":"walk","frame":"0","max_frame":"5"}]
+player1_x = 0
+player1_y = 0
+player1_xvel = 0
+player1_yvel = 0
+player1_type = "basic"
+player1_anim = "idle"
+player1_frame = 1
+player1_endfrm = 3
+player1_health = 0
+
+player2_x = 0
+player2_y = 0
+player2_xvel = 0
+player2_yvel = 0
+player2_anim = "idle"
+player2_frame = 1
+player2_endfrm = 3
+player2_health = 0
+
+github = "raw.githubusercontent.com/Mistium/Super-Slime-Bros/main"
 
 cam_x = 0
 cam_y = 0
 zoom = 1
 
-def "player_movement" "id"
+def "player_velocity_in"
+  if "D".pressed "player1_xvel = 5"
+  if "A".pressed "player1_xvel = -5"
 
-   players.[id] += gamepads.[id].key("left_horizontal")
+  if "right arrow".pressed "player1_xvel = 5"
+  if "left arrow".pressed "player1_xvel = -5"
+endef
+
+def "player_movement" "id"
+  if true "player" ++ id ++ "_xvel *= 0.8"
+  if true "player" ++ id ++ "_yvel *= 0.8"
+
+  if true "player" ++ id ++ "_x += player" ++ id ++ "_xvel"
+  if true "player" ++ id ++ "_y += player" ++ id ++ "_yvel"
 endef
 
 def "step"
-  player_count = 0
-  loop players.len (
-    player_count += 1
-    current = players.[player_count]
-    goto current.key("x") + cam_x * zoom current.key("y") + cam_y * zoom
-    square 40 20 10 : c#fff
-    current.key("frame") += 1
-    if current.key("frame") > current.key("max_frame") (
-      current.key("frame") = 0
-    )
-    player_movement count
-    players.[player_count] = current
-  )
+    player1_frame += 1
+    goto player1_x + cam_x * zoom player1_y + cam_y * zoom
+    image github ++ "/assets/" ++ player1_type ++ "_" ++ player1_anim ++ "/" ++ player1_frame ++ ".png" 100 * size
+    if player1_frame > player1_endfrm "player1_frame = 0"
+    player_movement 1
+
+    player2_frame += 1
+    goto player2_x + cam_x * zoom player2_y + cam_y * zoom
+    image github ++ "/assets/" ++ player2_type ++ "_" ++ player2_anim ++ "/" ++ player2_frame ++ ".png" 100 * size
+    if player2_frame > player2_endfrm "player2_frame = 0"
+    player_movement 2
 endef
 
 mainloop:
+
+goto 0 0
+c #ddd
+square 0 0 window_width + window_height
 step
 
 loc 2 -2 20 20
@@ -35,6 +67,6 @@ loop gamepads.len (
 )
 
 goto camdispl_x camdispl_y
-image "raw.githubusercontent.com/Mistium/Super-Slime-Bros/stages/Spike.png" 1000 * zoom
+image "raw.githubusercontent.com/Mistium/Super-Slime-Bros/assets/stages/Spike.png" 1000 * zoom
 
 import "win-buttons"

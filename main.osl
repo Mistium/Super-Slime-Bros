@@ -1,5 +1,5 @@
-player1_x = 0
-player1_y = 0
+player1_x = 100
+player1_y = 50
 player1_xvel = 0
 player1_yvel = 0
 player1_type = "basic"
@@ -7,66 +7,124 @@ player1_anim = "idle"
 player1_frame = 1
 player1_endfrm = 3
 player1_health = 0
+player1_stretch = 100
+player1_target = 100
 
-player2_x = 0
-player2_y = 0
+player2_x = -100
+player2_y = 50
 player2_xvel = 0
 player2_yvel = 0
+player2_type = "basic"
 player2_anim = "idle"
 player2_frame = 1
 player2_endfrm = 3
 player2_health = 0
+player2_stretch = -100
+player2_target = -100
 
-github = "https://raw.githubusercontent.com/Mistium/Super-Slime-Bros/main"
+p1_lst = timer
+p2_lst = timer
+
+window "dimensions" 1000 500
+hitbox "show"
+
+github = "https://raw.githubusercontent.com/Mistium/Super-Slime-Bros/main/"
 
 cam_x = 0
 cam_y = 0
+stage_x = 0
+stage_y = 0
+
 zoom = 1
 
-def "player_velocity_in"
-  if "D".pressed "player1_xvel = 5"
-  if "A".pressed "player1_xvel = -5"
-
-  if "right arrow".pressed "player1_xvel = 5"
-  if "left arrow".pressed "player1_xvel = -5"
-endef
-
-def "player_movement" "id"
-  if true "player" ++ id ++ "_xvel *= 0.8"
-  if true "player" ++ id ++ "_yvel *= 0.8"
-
-  if true "player" ++ id ++ "_x += player" ++ id ++ "_xvel"
-  if true "player" ++ id ++ "_y += player" ++ id ++ "_yvel"
-endef
-
 def "step"
-    player1_frame += 0.3
-    goto player1_x + cam_x * zoom player1_y + cam_y * zoom
-    image github ++ "/assets/" ++ player1_type ++ "_" ++ player1_anim ++ "/" ++ player1_frame.round ++ ".png" 100 * size
-    if player1_frame > player1_endfrm "player1_frame = 0"
-    player_movement 1
+  if player1_anim != "idle" and "d".pressed.not and "a".pressed.not (
+    player1_anim = "idle"
+    player1_frame = 1
+    player1_endfrm = 3
+  )
+  if player1_anim != "walk" and "d".pressed or "a".pressed (
+    player1_anim = "walk"
+    player1_frame = 1
+    player1_endfrm = 7
+  )
+  if "d".pressed (
+    player1_xvel = 8
+    player1_target = 100
+  )
+  if "a".pressed (
+    player1_xvel = -8
+    player1_target = -100
+  )
+  if "right arrow".pressed (
+    player2_xvel = 8
+    player2_target = 100
+  )
+  if "left arrow".pressed (
+    player2_xvel = -8
+    player2_target = -100
+  )
 
-    player2_frame += 0.3
-    goto player2_x + cam_x * zoom player2_y + cam_y * zoom
-    image github ++ "/assets/" ++ player2_type ++ "_" ++ player2_anim ++ "/" ++ player2_frame.round ++ ".png" 100 * size
-    if player2_frame > player2_endfrm "player2_frame = 0"
-    player_movement 2
+  player1_yvel -= 2
+  player1_xvel *= 0.8
+  player2_yvel -= 2
+  player2_xvel *= 0.8
+
+  player1_x += player1_xvel
+  player1_y += player1_yvel
+  player2_x += player2_xvel
+  player2_y += player2_yvel
+
+  player1_stretch += player1_target - player1_stretch / 4
+  player2_stretch += player2_target - player2_stretch / 4
+
+  if timer - 0.2 > p1_lst (
+    player1_frame += 1
+    p1_lst = timer
+  )
+  if timer - 0.2 > p2_lst (
+    player2_frame += 1
+    p2_lst = timer
+  )
+
+  if player1_frame > player1_endfrm "player1_frame = 1"
+  if player2_frame > player2_endfrm "player2_frame = 1"
+endef
+
+def "render_players"
+  goto player1_x player1_y
+  stretch "x" player1_stretch.int
+  image github ++ "assets/" ++ player1_type ++ "_" ++ player1_anim ++ "/" ++ player1_frame.round ++ ".png" 200
+  goto player2_x player2_y
+  stretch "x" player2_stretch.int
+  image github ++ "assets/" ++ player2_type ++ "_" ++ player2_anim ++ "/" ++ player2_frame.round ++ ".png" 200
 endef
 
 mainloop:
 
-goto 0 0
-c #ddd
-square 0 0 window_width + window_height
-step
+cam_x = player1_x + player2_x / 2
+cam_y = player1_y + player2_y / 2
 
-loc 2 -2 20 20
-loop gamepads.len (
-  icon "controller" 1 : c#fff
-  change_x 40
+goto 0 0
+c #ccc
+square 0 0 window_width + window_height
+
+stretch "x" 100
+goto stage_x stage_y
+image github ++ "assets/stages/spike.png" 1000 * zoom
+step
+goto 0 0
+hitbox 1000 * zoom 30 player1_x player1_y - 50
+if collided (
+  player1_y = 50
+  player1_yvel = 0
 )
 
-goto camdispl_x camdispl_y
-image github ++ "assets/stages/spike.png" 1000 * zoom
+hitbox 1000 * zoom 30 player2_x player2_y - 50
+if collided (
+  player2_y = 50
+  player2_yvel = 0
+)
+render_players
 
 import "win-buttons"

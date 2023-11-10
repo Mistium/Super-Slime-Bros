@@ -17,7 +17,7 @@ player2_frame = 1
 player2_endfrm = 3
 player2_health = 0
 
-github = "raw.githubusercontent.com/Mistium/Super-Slime-Bros/main"
+github = "https://raw.githubusercontent.com/Mistium/Super-Slime-Bros/main"
 
 cam_x = 0
 cam_y = 0
@@ -67,6 +67,6 @@ loop gamepads.len (
 )
 
 goto camdispl_x camdispl_y
-image "raw.githubusercontent.com/Mistium/Super-Slime-Bros/assets/stages/Spike.png" 1000 * zoom
+image github ++ "assets/stages/spike.png" 1000 * zoom
 
 import "win-buttons"

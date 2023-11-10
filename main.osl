@@ -40,15 +40,15 @@ def "player_movement" "id"
 endef
 
 def "step"
-    player1_frame += 1
+    player1_frame += 0.3
     goto player1_x + cam_x * zoom player1_y + cam_y * zoom
-    image github ++ "/assets/" ++ player1_type ++ "_" ++ player1_anim ++ "/" ++ player1_frame ++ ".png" 100 * size
+    image github ++ "/assets/" ++ player1_type ++ "_" ++ player1_anim ++ "/" ++ player1_frame.round ++ ".png" 100 * size
     if player1_frame > player1_endfrm "player1_frame = 0"
     player_movement 1
 
-    player2_frame += 1
+    player2_frame += 0.3
     goto player2_x + cam_x * zoom player2_y + cam_y * zoom
-    image github ++ "/assets/" ++ player2_type ++ "_" ++ player2_anim ++ "/" ++ player2_frame ++ ".png" 100 * size
+    image github ++ "/assets/" ++ player2_type ++ "_" ++ player2_anim ++ "/" ++ player2_frame.round ++ ".png" 100 * size
     if player2_frame > player2_endfrm "player2_frame = 0"
     player_movement 2
 endef

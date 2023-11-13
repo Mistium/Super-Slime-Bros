@@ -9,6 +9,7 @@ player1_endfrm = 3
 player1_health = 0
 player1_stretch = 100
 player1_target = 100
+player1_grounded = true
 
 player2_x = -100
 player2_y = 50
@@ -21,12 +22,12 @@ player2_endfrm = 3
 player2_health = 0
 player2_stretch = -100
 player2_target = -100
+player2_grounded = true
 
 p1_lst = timer
 p2_lst = timer
 
 window "dimensions" 1000 500
-hitbox "show"
 
 github = "https://raw.githubusercontent.com/Mistium/Super-Slime-Bros/main/"
 
@@ -48,6 +49,16 @@ def "step"
     player1_frame = 1
     player1_endfrm = 7
   )
+  if player2_anim != "idle" and "d".pressed.not and "a".pressed.not (
+    player2_anim = "idle"
+    player2_frame = 1
+    player2_endfrm = 3
+  )
+  if player2_anim != "walk" and "right arrow".pressed or "left arrow".pressed (
+    player2_anim = "walk"
+    player2_frame = 1
+    player2_endfrm = 7
+  )
   if "d".pressed (
     player1_xvel = 8
     player1_target = 100
@@ -56,6 +67,10 @@ def "step"
     player1_xvel = -8
     player1_target = -100
   )
+  if "w".pressed and player1_grounded (
+    player1_yvel = 30
+    player1_grounded = false
+  )
   if "right arrow".pressed (
     player2_xvel = 8
     player2_target = 100
@@ -63,6 +78,10 @@ def "step"
   if "left arrow".pressed (
     player2_xvel = -8
     player2_target = -100
+  )
+  if "up arrow".pressed and player2_grounded (
+    player2_yvel = 30
+    player2_grounded = false
   )
 
   player1_yvel -= 2
@@ -116,12 +135,14 @@ step
 goto 0 0
 hitbox 1000 * zoom 30 player1_x player1_y - 50
 if collided (
+  player1_grounded = true
   player1_y = 50
   player1_yvel = 0
 )
 
 hitbox 1000 * zoom 30 player2_x player2_y - 50
 if collided (
+  player2_grounded = true
   player2_y = 50
   player2_yvel = 0
 )

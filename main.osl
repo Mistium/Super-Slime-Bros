@@ -27,15 +27,20 @@ player2_grounded = true
 p1_lst = timer
 p2_lst = timer
 
-window "dimensions" 1000 500
+window "dimensions" 1200 700
 
 github = "https://raw.githubusercontent.com/Mistium/Super-Slime-Bros/main/"
+
+stage = 0
+selected_stage = 0
+page = "main"
 
 cam_x = 0
 cam_y = 0
 stage_x = 0
 stage_y = 0
 
+window_colour = #fff
 zoom = 1
 
 def "step"
@@ -44,39 +49,42 @@ def "step"
     player1_frame = 1
     player1_endfrm = 3
   )
-  if player1_anim != "walk" and "d".pressed or "a".pressed (
+  if player1_anim != "walk" and ( "d".pressed or "a".pressed ) (
     player1_anim = "walk"
     player1_frame = 1
-    player1_endfrm = 7
+    player1_endfrm = 6
   )
-  if player2_anim != "idle" and "d".pressed.not and "a".pressed.not (
+
+  if player2_anim != "idle" and "right arrow".pressed.not and "left arrow".pressed.not (
     player2_anim = "idle"
     player2_frame = 1
     player2_endfrm = 3
   )
-  if player2_anim != "walk" and "right arrow".pressed or "left arrow".pressed (
+  if player2_anim != "walk" and ( "right arrow".pressed or "left arrow".pressed ) (
     player2_anim = "walk"
     player2_frame = 1
-    player2_endfrm = 7
+    player2_endfrm = 6
   )
+
   if "d".pressed (
-    player1_xvel = 8
+    player1_xvel = 15
     player1_target = 100
   )
   if "a".pressed (
-    player1_xvel = -8
+    player1_xvel = -15
     player1_target = -100
   )
   if "w".pressed and player1_grounded (
     player1_yvel = 30
     player1_grounded = false
   )
+
   if "right arrow".pressed (
-    player2_xvel = 8
+    player2_xvel = 15
     player2_target = 100
   )
   if "left arrow".pressed (
-    player2_xvel = -8
+    player2_xvel = -15
     player2_target = -100
   )
   if "up arrow".pressed and player2_grounded (
@@ -97,11 +105,11 @@ def "step"
   player1_stretch += player1_target - player1_stretch / 4
   player2_stretch += player2_target - player2_stretch / 4
 
-  if timer - 0.2 > p1_lst (
+  if timer - 0.1 > p1_lst (
     player1_frame += 1
     p1_lst = timer
   )
-  if timer - 0.2 > p2_lst (
+  if timer - 0.1 > p2_lst (
     player2_frame += 1
     p2_lst = timer
   )
@@ -119,33 +127,86 @@ def "render_players"
   image github ++ "assets/" ++ player2_type ++ "_" ++ player2_anim ++ "/" ++ player2_frame.round ++ ".png" 200
 endef
 
-mainloop:
-
-cam_x = player1_x + player2_x / 2
-cam_y = player1_y + player2_y / 2
-
-goto 0 0
-c #ccc
-square 0 0 window_width + window_height
-
-stretch "x" 100
-goto stage_x stage_y
-image github ++ "assets/stages/spike.png" 1000 * zoom
-step
-goto 0 0
-hitbox 1000 * zoom 30 player1_x player1_y - 50
-if collided (
+def "collide" "width,height,reset,droppable"
+hitbox width * zoom height * zoom player1_x player1_y - 50
+if ( ( "s".pressed.not and droppable ) or droppable.not ) and collided (
   player1_grounded = true
-  player1_y = 50
+  player1_y = reset
   player1_yvel = 0
 )
 
-hitbox 1000 * zoom 30 player2_x player2_y - 50
-if collided (
+hitbox width * zoom height * zoom player2_x player2_y - 50
+if ( ( "down arrow".pressed.not and droppable ) or droppable.not ) and collided (
   player2_grounded = true
-  player2_y = 50
+  player2_y = reset
   player2_yvel = 0
 )
+endef
+
+def ssb_button "txt,location"
+  square 360 40 10 : c#fff
+  if clicked "page = location"
+  m = mouse_touching
+  if m "change mouse_x - x_position / 20 mouse_y - y_position / 20"
+  if m "square 360 40 20 : c#eee"
+  change -170
+  text txt 10 : c#000
+endef
+
+mainloop:
+
+if stage == 0 (
+  loc 2 999 210 0
+  square 400 window_height - 30 10 : c#ddd
+  if page == "main" (
+    loc 2 2 30 -50
+    text "Super Slime Bros" 20 : c#000
+
+    loc 2 2 210 -120
+    ssb_button "Start Battle :O" "level_select"
+
+    loc -5 -5 mouse_x / 10 mouse_y / 10
+    image github ++ "assets/stages/spike.png" 1000 * zoom
+  )
+  if page == "level_select" (
+    loc 2 2 30 -50
+    text "Level Select" 20 : c#000
+
+    loc 2 -2 210 120
+    if selected_stage != 0 "ssb_button Start play"
+    txt = "Select a stage to play"
+    loc 2 -2 40 120
+    if selected_stage == 0 "text txt 10"
+    loc 2 -2 210 60
+    ssb_button "Back to Main Menu" "main"
+  )
+)
+if stage != 0 (
+cam_x = player1_x + player2_x / 2
+cam_y = player1_y + player2_y / 2
+
+stretch "x" 100
+goto stage_x stage_y
+image github ++ "assets/stages/" ++ stage ++ ".png" 1000 * zoom
+
+step
+)
+if stage == "spike" (
+  c #000
+  goto stage_x stage_y
+  collide 1000 30 50 false
+
+  goto stage_x + 250 stage_y + 165
+  collide 200 40 230 true
+
+  goto stage_x - 320 stage_y + 195
+  collide 200 40 260 true
+
+  goto stage_x - 25 stage_y + 330
+  collide 120 40 400 true
+)
+if stage != 0 (
 render_players
+)
 
 import "win-buttons"

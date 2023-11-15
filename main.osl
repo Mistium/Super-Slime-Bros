@@ -154,8 +154,8 @@ def ssb_button "txt,location"
 endef
 
 def "level" "url"
-  page_len += url.imageinfo("height") * multiplier
   multiplier = frame_width - 10 / url.imageinfo("width")
+  page_len += url.imageinfo("height") * multiplier
   if selected_stage == url (
     square url.imageinfo("width") * multiplier - 30 url.imageinfo("height") * multiplier 20 : c#000
   )
@@ -207,7 +207,6 @@ if stage == 0 (
     start = frame_width - 10 / url.imageinfo("width") * url.imageinfo("height") / -0.66
     loc 999 2 0 start + scroll_y - 30
     level url
-    level github ++ "assets/stages/spike.png"
     frame "clear"
   )
   if page == "play" (

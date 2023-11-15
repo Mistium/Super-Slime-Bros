@@ -153,6 +153,18 @@ def ssb_button "txt,location"
   text txt 10 : c#000
 endef
 
+def "level" "url"
+  page_len += url.imageinfo("height") * multiplier
+  multiplier = frame_width - 10 / url.imageinfo("width")
+  if selected_stage == url (
+    square url.imageinfo("width") * multiplier - 30 url.imageinfo("height") * multiplier 20 : c#000
+  )
+  square url.imageinfo("width") * multiplier - 30 url.imageinfo("height") * multiplier 10 : c#ddd
+  if clicked "selected_stage = url"
+  image url frame_width - 40
+  change_y url.imageinfo("height") * multiplier + 30
+endef
+
 mainloop:
 
 if stage == 0 (
@@ -165,6 +177,9 @@ if stage == 0 (
     loc 2 2 210 -120
     ssb_button "Start Battle :O" "level_select"
 
+    loc 2 2 210 -180
+    ssb_button "Quit Game" "quit"
+
     loc -5 -5 mouse_x / 10 mouse_y / 10
     image github ++ "assets/stages/spike.png" 1000 * zoom
   )
@@ -173,25 +188,47 @@ if stage == 0 (
     text "Level Select" 20 : c#000
 
     loc 2 -2 210 120
-    if selected_stage != 0 "ssb_button Start play"
+    if selected_stage != 0 "ssb_button Play play"
     txt = "Select a stage to play"
     loc 2 -2 40 120
     if selected_stage == 0 "text txt 10"
     loc 2 -2 210 60
     ssb_button "Back to Main Menu" "main"
+
+    loc 2 2 440 -30
+    x = x_position
+    y = y_position
+    loc -2 -2 0 0
+    c #eee
+    frame x y x_position y_position page_len
+
+    page_len = 0
+    url = github ++ "assets/stages/spike.png"
+    start = frame_width - 10 / url.imageinfo("width") * url.imageinfo("height") / -0.66
+    loc 999 2 0 start + scroll_y - 30
+    level url
+    level github ++ "assets/stages/spike.png"
+    frame "clear"
+  )
+  if page == "play" (
+    page = 0
+    stage = selected_stage
+  )
+  if page == "quit" (
+    window "stop"
   )
 )
 if stage != 0 (
-cam_x = player1_x + player2_x / 2
-cam_y = player1_y + player2_y / 2
+  cam_x = player1_x + player2_x / 2
+  cam_y = player1_y + player2_y / 2
 
-stretch "x" 100
-goto stage_x stage_y
-image github ++ "assets/stages/" ++ stage ++ ".png" 1000 * zoom
+  stretch "x" 100
+  goto stage_x stage_y
+  image stage 1000 * zoom
 
-step
+  step
 )
-if stage == "spike" (
+if stage == github ++ "assets/stages/spike.png" (
   c #000
   goto stage_x stage_y
   collide 1000 30 50 false
@@ -206,7 +243,7 @@ if stage == "spike" (
   collide 120 40 400 true
 )
 if stage != 0 (
-render_players
+  render_players
 )
 
 import "win-buttons"

@@ -1,4 +1,4 @@
-player1_x = 100
+player1_x = -100
 player1_y = 50
 player1_xvel = 0
 player1_yvel = 0
@@ -7,11 +7,12 @@ player1_anim = "idle"
 player1_frame = 1
 player1_endfrm = 3
 player1_health = 0
-player1_stretch = 100
-player1_target = 100
+player1_stretch = -100
+player1_target = -100
 player1_grounded = true
+player1_dir = "r"
 
-player2_x = -100
+player2_x = 100
 player2_y = 50
 player2_xvel = 0
 player2_yvel = 0
@@ -20,9 +21,10 @@ player2_anim = "idle"
 player2_frame = 1
 player2_endfrm = 3
 player2_health = 0
-player2_stretch = -100
-player2_target = -100
+player2_stretch = 100
+player2_target = 100
 player2_grounded = true
+player2_dir = "l"
 
 p1_lst = timer
 p2_lst = timer
@@ -66,30 +68,38 @@ def "step"
     player2_endfrm = 6
   )
 
+  player1_target = -100
+  if player1_dir == "r" "player1_target = 100"
+
+  player2_target = -100
+  if player2_dir == "r" "player2_target = 100"
+
   if "d".pressed (
     player1_xvel = 15
-    player1_target = 100
+    player1_dir = "r"
   )
   if "a".pressed (
     player1_xvel = -15
-    player1_target = -100
+    player1_dir = "l"
   )
   if "w".pressed and player1_grounded (
     player1_yvel = 30
     player1_grounded = false
-  )
+    player1_stretch *= 0.5
+)
 
   if "right arrow".pressed (
     player2_xvel = 15
-    player2_target = 100
+    player2_dir = "r"
   )
   if "left arrow".pressed (
     player2_xvel = -15
-    player2_target = -100
+    player2_dir = "l"
   )
   if "up arrow".pressed and player2_grounded (
     player2_yvel = 30
     player2_grounded = false
+    player2_stretch *= 0.5
   )
 
   player1_yvel -= 2
@@ -119,15 +129,16 @@ def "step"
 endef
 
 def "render_players"
-  goto player1_x player1_y
+  goto player1_x + cam_x player1_y + cam_y
   stretch "x" player1_stretch.int
   image github ++ "assets/" ++ player1_type ++ "_" ++ player1_anim ++ "/" ++ player1_frame.round ++ ".png" 200
-  goto player2_x player2_y
+  goto player2_x + cam_x player2_y + cam_y
   stretch "x" player2_stretch.int
   image github ++ "assets/" ++ player2_type ++ "_" ++ player2_anim ++ "/" ++ player2_frame.round ++ ".png" 200
 endef
 
 def "collide" "width,height,reset,droppable"
+c #000
 hitbox width * zoom height * zoom player1_x player1_y - 50
 if ( ( "s".pressed.not and droppable ) or droppable.not ) and collided (
   player1_grounded = true
@@ -162,7 +173,7 @@ def "level" "url"
   square url.imageinfo("width") * multiplier - 30 url.imageinfo("height") * multiplier 10 : c#ddd
   if clicked "selected_stage = url"
   image url frame_width - 40
-  change_y url.imageinfo("height") * multiplier + 30
+  change_y url.imageinfo("height") * multiplier * -1 + 30
 endef
 
 mainloop:
@@ -204,7 +215,7 @@ if stage == 0 (
 
     page_len = 0
     url = github ++ "assets/stages/spike.png"
-    start = frame_width - 10 / url.imageinfo("width") * url.imageinfo("height") / -0.66
+    start = frame_width - 10 / url.imageinfo("width") * url.imageinfo("height") / -2
     loc 999 2 0 start + scroll_y - 30
     level url
     frame "clear"
@@ -218,8 +229,14 @@ if stage == 0 (
   )
 )
 if stage != 0 (
-  cam_x = player1_x + player2_x / 2
-  cam_y = player1_y + player2_y / 2
+  cam_x_target = player1_x + player2_x / -2
+  cam_y_target = player1_y + player2_y / -2
+
+  cam_x += cam_x_target - cam_x / 6
+  cam_y += cam_y_target - cam_y / 6
+
+  stage_x = cam_x
+  stage_y = cam_y
 
   stretch "x" 100
   goto stage_x stage_y
@@ -229,17 +246,17 @@ if stage != 0 (
 )
 if stage == github ++ "assets/stages/spike.png" (
   c #000
-  goto stage_x stage_y
+  goto 0 0
   collide 1000 30 50 false
 
-  goto stage_x + 250 stage_y + 165
+  goto 250 165
   collide 200 40 230 true
 
-  goto stage_x - 320 stage_y + 195
+  goto -320 195
   collide 200 40 260 true
 
-  goto stage_x - 25 stage_y + 330
-  collide 120 40 400 true
+  goto -20 330
+  collide 160 40 400 true
 )
 if stage != 0 (
   render_players

@@ -57,6 +57,15 @@ def "p2_idle"
   player2_endfrm = 3
 endef
 
+def "attack" "player,attack_type"
+  if player == 1 and ( attack_type == 1 ) (
+    goto player1_x player1_y
+  )
+  if player == 2 and ( attack_type == 2 ) (
+    goto player2_x player2_y
+  )
+endef
+
 def "step"
   if player1_anim == "attack1" and ( player1_frame == 1 ) "p1_idle"
   if player1_anim != "idle" and ( player1_anim != "attack1" ) and "d".pressed.not and "a".pressed.not (
@@ -148,6 +157,9 @@ def "step"
 
   if player1_frame > player1_endfrm "player1_frame = 1"
   if player2_frame > player2_endfrm "player2_frame = 1"
+
+  if player1_anim + player1_frame == "attack1 6" "attack 1 1"
+  if player2_anim + player2_frame == "attack1 6" "attack 2 1"
 endef
 
 def "render_players"

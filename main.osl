@@ -45,27 +45,47 @@ stage_y = 0
 window_colour = #fff
 zoom = 1
 
+def "p1_idle"
+  player1_anim = "idle"
+  player1_frame = 1
+  player1_endfrm = 3
+endef
+
+def "p2_idle"
+  player2_anim = "idle"
+  player2_frame = 1
+  player2_endfrm = 3
+endef
+
 def "step"
-  if player1_anim != "idle" and "d".pressed.not and "a".pressed.not (
-    player1_anim = "idle"
-    player1_frame = 1
-    player1_endfrm = 3
+  if player1_anim == "attack1" and ( player1_frame == 1 ) "p1_idle"
+  if player1_anim != "idle" and ( player1_anim != "attack1" ) and "d".pressed.not and "a".pressed.not (
+    p1_idle
   )
   if player1_anim != "walk" and ( "d".pressed or "a".pressed ) (
     player1_anim = "walk"
     player1_frame = 1
     player1_endfrm = 6
   )
+  if player1_anim != "attack1" and "space".pressed (
+    player1_anim = "attack1"
+    player1_frame = 1
+    player1_endfrm = 9
+  )
 
-  if player2_anim != "idle" and "right arrow".pressed.not and "left arrow".pressed.not (
-    player2_anim = "idle"
-    player2_frame = 1
-    player2_endfrm = 3
+  if player2_anim == "attack1" and ( player2_frame == 1 ) "p2_idle"
+  if player2_anim != "idle" and ( player2_anim != "attack1" ) and "right arrow".pressed.not and "left arrow".pressed.not (
+    p2_idle
   )
   if player2_anim != "walk" and ( "right arrow".pressed or "left arrow".pressed ) (
     player2_anim = "walk"
     player2_frame = 1
     player2_endfrm = 6
+  )
+  if player2_anim != "attack1" and "enter".pressed (
+    player2_anim = "attack1"
+    player2_frame = 1
+    player2_endfrm = 9
   )
 
   player1_target = -100

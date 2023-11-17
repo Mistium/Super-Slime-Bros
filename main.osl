@@ -62,7 +62,7 @@ def "step"
   if player1_anim != "idle" and ( player1_anim != "attack1" ) and "d".pressed.not and "a".pressed.not (
     p1_idle
   )
-  if player1_anim != "walk" and ( "d".pressed or "a".pressed ) (
+  if ["walk","attack1"].contains(player1_anim).not and ( "d".pressed or "a".pressed ) (
     player1_anim = "walk"
     player1_frame = 1
     player1_endfrm = 6
@@ -70,14 +70,14 @@ def "step"
   if player1_anim != "attack1" and "space".pressed (
     player1_anim = "attack1"
     player1_frame = 1
-    player1_endfrm = 9
+    player1_endfrm = 7
   )
 
   if player2_anim == "attack1" and ( player2_frame == 1 ) "p2_idle"
   if player2_anim != "idle" and ( player2_anim != "attack1" ) and "right arrow".pressed.not and "left arrow".pressed.not (
     p2_idle
   )
-  if player2_anim != "walk" and ( "right arrow".pressed or "left arrow".pressed ) (
+  if ["walk","attack1"].contains(player2_anim).not and ( "right arrow".pressed or "left arrow".pressed ) (
     player2_anim = "walk"
     player2_frame = 1
     player2_endfrm = 6
@@ -85,7 +85,7 @@ def "step"
   if player2_anim != "attack1" and "enter".pressed (
     player2_anim = "attack1"
     player2_frame = 1
-    player2_endfrm = 9
+    player2_endfrm = 7
   )
 
   player1_target = -100
@@ -105,7 +105,8 @@ def "step"
   if "w".pressed and player1_grounded (
     player1_yvel = 30
     player1_grounded = false
-    player1_stretch *= 0.5
+    player1_stretch *= 0.3
+    player1_target *= 0.1
 )
 
   if "right arrow".pressed (
@@ -119,7 +120,8 @@ def "step"
   if "up arrow".pressed and player2_grounded (
     player2_yvel = 30
     player2_grounded = false
-    player2_stretch *= 0.5
+    player2_stretch *= 0.3
+    player2_target *= 0.1
   )
 
   player1_yvel -= 2
@@ -252,8 +254,8 @@ if stage != 0 (
   cam_x_target = player1_x + player2_x / -2
   cam_y_target = player1_y + player2_y / -2
 
-  cam_x += cam_x_target - cam_x / 6
-  cam_y += cam_y_target - cam_y / 6
+  cam_x += cam_x_target - cam_x / 10
+  cam_y += cam_y_target - cam_y / 10
 
   stage_x = cam_x
   stage_y = cam_y

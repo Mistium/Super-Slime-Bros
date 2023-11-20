@@ -15,12 +15,10 @@ player2_health = 0
 player2_dead = false
 
 // player animation variables
-player1_type = "basic"
 player1_anim = "idle"
 player1_frame = 1
 player1_endfrm = 3
 
-player2_type = "basic"
 player2_anim = "idle"
 player2_frame = 1
 player2_endfrm = 3
@@ -35,10 +33,6 @@ player2_stretch = 100
 player2_target = 100
 player2_grounded = true
 player2_dir = "l"
-
-// slime setup
-switchslime "basic" 1
-switchslime "basic" 2
 
 def "switchslime" "type,player"
 if type == "basic" (
@@ -59,12 +53,14 @@ if player == 2 (
 )
 endef
 
+// slime setup
+switchslime "basic" 1
+switchslime "heavy" 2
+
 p1_lst = timer
 p2_lst = timer
 
 window "dimensions" 1200 700
-
-hitbox "show"
 
 github = "https://raw.githubusercontent.com/Mistium/Super-Slime-Bros/main/"
 
@@ -229,12 +225,12 @@ endef
 def "render_players"
   goto player1_x + cam_x player1_y + cam_y
   stretch "x" player1_stretch.int
-  image github ++ "assets/" ++ player1_type ++ "_" ++ player1_anim ++ "/" ++ player1_frame.round ++ ".png" 200
+  image github ++ "assets/" ++ player1_type ++ "/" ++ player1_anim ++ "/" ++ player1_frame.round ++ ".png" 200
   change 0 60
   text "1" 10 : c#000
   goto player2_x + cam_x player2_y + cam_y
   stretch "x" player2_stretch.int
-  image github ++ "assets/" ++ player2_type ++ "_" ++ player2_anim ++ "/" ++ player2_frame.round ++ ".png" 200
+  image github ++ "assets/" ++ player2_type ++ "/" ++ player2_anim ++ "/" ++ player2_frame.round ++ ".png" 200
   change 0 60
   text "2" 10 : c#000
 endef

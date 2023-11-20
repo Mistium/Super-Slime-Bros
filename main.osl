@@ -274,14 +274,12 @@ endef
 
 def "level" "url"
   multiplier = frame_width - 10 / url.imageinfo("width")
-  page_len += url.imageinfo("height") * multiplier
   if selected_stage == url (
     square url.imageinfo("width") * multiplier - 30 url.imageinfo("height") * multiplier 20 : c#000
   )
   square url.imageinfo("width") * multiplier - 30 url.imageinfo("height") * multiplier 10 : c#ddd
   if clicked "selected_stage = url"
   image url frame_width - 40
-  change_y url.imageinfo("height") * multiplier * -1 + 30
 endef
 
 mainloop:
@@ -295,6 +293,7 @@ if stage == 0 (
 
     loc 2 2 210 -120
     ssb_button "Start Battle :O" "level_select"
+    lvl_page = 1
 
     loc 2 2 210 -180
     ssb_button "Quit Game" "quit"
@@ -314,19 +313,18 @@ if stage == 0 (
     loc 2 -2 210 60
     ssb_button "Back to Main Menu" "main"
 
-    loc 2 2 440 -30
-    x = x_position
-    y = y_position
-    loc -2 -2 0 0
-    c #eee
-    frame x y x_position y_position page_len
-
-    page_len = 0
-    url = github ++ "assets/stages/spike.png"
-    start = frame_width - 10 / url.imageinfo("width") * url.imageinfo("height") / -2
-    loc 999 2 0 start + scroll_y - 30
-    level url
-    level github ++ "assets/stages/tree.png"
+    loc 999 999 220 0
+    frame_width = window_width - 450
+    if lvl_page == 1 (
+      level github ++ "assets/stages/spike.png"
+    )
+    if lvl_page == 2 (
+      level github ++ "assets/stages/tree.png"
+    )
+    loc -2 -2 -40 40
+    square 30 30 10 : c#ddd
+    if mouse_touching "cursor pointer"
+    icon "right-arrow" 1 : c#000
     frame "clear"
   )
   if page == "play" (

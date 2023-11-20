@@ -7,10 +7,12 @@ player1_anim = "idle"
 player1_frame = 1
 player1_endfrm = 3
 player1_health = 0
+player1_lives = 3
 player1_stretch = -100
 player1_target = -100
 player1_grounded = true
 player1_dir = "r"
+player1_dead = false
 
 player2_x = 100
 player2_y = 50
@@ -25,6 +27,7 @@ player2_stretch = 100
 player2_target = 100
 player2_grounded = true
 player2_dir = "l"
+player2_dead = false
 
 p1_lst = timer
 p2_lst = timer
@@ -60,14 +63,33 @@ endef
 def "attack" "player,attack_type"
   if player == 1 and ( attack_type == 1 ) (
     goto player1_x player1_y
+    change -40
+    if player1_dir == "r" "change 80"
+    hitbox 200 150 player2_x player2_y
+    if collided "player2_health += 2"
+    if player1_dir == "r" and collided "player2_xvel += player2_health / 2"
+    if player1_dir == "l" and collided (
+      player2_xvel -= player2_health / 2
+      player2_yvel += 30
+    )
   )
-  if player == 2 and ( attack_type == 2 ) (
+  if player == 2 and ( attack_type == 1 ) (
     goto player2_x player2_y
+    change -40
+    if player2_dir == "r" "change 80"
+    hitbox 200 150 player1_x player1_y
+    if collided "player1_health += 2"
+    if player2_dir == "r" and collided "player1_xvel += player1_health / 2"
+    if player2_dir == "l" and collided (
+      player1_xvel -= player1_health / 2
+      player1_yvel += 30
+    )
   )
 endef
 
 def "step"
   if player1_anim == "attack1" and ( player1_frame == 1 ) "p1_idle"
+
   if player1_anim != "idle" and ( player1_anim != "attack1" ) and "d".pressed.not and "a".pressed.not (
     p1_idle
   )
@@ -158,17 +180,21 @@ def "step"
   if player1_frame > player1_endfrm "player1_frame = 1"
   if player2_frame > player2_endfrm "player2_frame = 1"
 
-  if player1_anim + player1_frame == "attack1 6" "attack 1 1"
-  if player2_anim + player2_frame == "attack1 6" "attack 2 1"
+  if player1_anim + player1_frame == "attack1 3" "attack 1 1"
+  if player2_anim + player2_frame == "attack1 3" "attack 2 1"
 endef
 
 def "render_players"
   goto player1_x + cam_x player1_y + cam_y
   stretch "x" player1_stretch.int
   image github ++ "assets/" ++ player1_type ++ "_" ++ player1_anim ++ "/" ++ player1_frame.round ++ ".png" 200
+  change 0 60
+  text "1" 10 : c#000
   goto player2_x + cam_x player2_y + cam_y
   stretch "x" player2_stretch.int
   image github ++ "assets/" ++ player2_type ++ "_" ++ player2_anim ++ "/" ++ player2_frame.round ++ ".png" 200
+  change 0 60
+  text "2" 10 : c#000
 endef
 
 def "collide" "width,height,reset,droppable"
@@ -272,11 +298,40 @@ if stage != 0 (
   stage_x = cam_x
   stage_y = cam_y
 
+  direction 90
   stretch "x" 100
   goto stage_x stage_y
   image stage 1000 * zoom
 
   step
+
+  if player1_y < -1000 (
+    player1_deadtime = timer
+    player2_dead = true
+  )
+  if player2_y < -1000 (
+    player2_deadtime = timer
+    player2_dead = true
+  )
+  if timer - player1_deadtime > 5 and player1_dead (
+    player1_x = 0
+    player1_y = 500
+    player1_lives -= 1
+  )
+  if timer - player2_deadtime > 5 and player2_dead (
+    player2_x = 0
+    player2_y = 500
+    player2_lives -= 1
+  )
+
+  c #ddd
+  loc 2 -2 100 50
+  square 200 50 10 1
+  c #000
+  loc 2 -2 30 50
+  text "<player1_health>%" 15
+  loc 2 -2 130 50
+  text "<player2_health>%" 15
 )
 if stage == github ++ "assets/stages/spike.png" (
   c #000

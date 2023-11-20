@@ -1,41 +1,74 @@
+// player main data
 player1_x = -100
 player1_y = 50
 player1_xvel = 0
 player1_yvel = 0
-player1_type = "basic"
-player1_anim = "idle"
-player1_frame = 1
-player1_endfrm = 3
 player1_health = 0
 player1_lives = 3
-player1_stretch = -100
-player1_target = -100
-player1_grounded = true
-player1_dir = "r"
 player1_dead = false
 
 player2_x = 100
 player2_y = 50
 player2_xvel = 0
 player2_yvel = 0
+player2_health = 0
+player2_dead = false
+
+// player animation variables
+player1_type = "basic"
+player1_anim = "idle"
+player1_frame = 1
+player1_endfrm = 3
+
 player2_type = "basic"
 player2_anim = "idle"
 player2_frame = 1
 player2_endfrm = 3
-player2_health = 0
+
+// player display variables
+player1_stretch = -100
+player1_target = -100
+player1_grounded = true
+player1_dir = "r"
+
 player2_stretch = 100
 player2_target = 100
 player2_grounded = true
 player2_dir = "l"
-player2_dead = false
+
+// slime setup
+switchslime "basic" 1
+switchslime "basic" 2
+
+def "switchslime" "type,player"
+if type == "basic" (
+  out_speed = 2
+  out_knockback = 2
+)
+if type == "basic" (
+  out_speed = 2
+  out_knockback = 2
+)
+if player == 1 (
+  player1_type = type
+)
+if player == 2 (
+  player2_type = type
+  player2_speed = out_speed
+  player2_knockback = out_knockback
+)
+endef
 
 p1_lst = timer
 p2_lst = timer
 
 window "dimensions" 1200 700
 
+hitbox "show"
+
 github = "https://raw.githubusercontent.com/Mistium/Super-Slime-Bros/main/"
 
+gravity = 1.5
 stage = 0
 selected_stage = 0
 page = "main"
@@ -61,28 +94,31 @@ def "p2_idle"
 endef
 
 def "attack" "player,attack_type"
+c #000
   if player == 1 and ( attack_type == 1 ) (
     goto player1_x player1_y
-    change -40
+    change -40 player1_xvel
     if player1_dir == "r" "change 80"
     hitbox 200 150 player2_x player2_y
     if collided "player2_health += 2"
     if player1_dir == "r" and collided "player2_xvel += player2_health / 2"
     if player1_dir == "l" and collided (
-      player2_xvel -= player2_health / 2
-      player2_yvel += 30
+      player2_xvel -= player2_health / player2_knockback
+      player2_yvel += 20
+      player2_y += 30
     )
   )
   if player == 2 and ( attack_type == 1 ) (
     goto player2_x player2_y
-    change -40
+    change -40 player2_vel
     if player2_dir == "r" "change 80"
     hitbox 200 150 player1_x player1_y
     if collided "player1_health += 2"
     if player2_dir == "r" and collided "player1_xvel += player1_health / 2"
     if player2_dir == "l" and collided (
-      player1_xvel -= player1_health / 2
-      player1_yvel += 30
+      player1_xvel -= player1_health / player1_knockback
+      player1_yvel += 20
+      player1_y += 30
     )
   )
 endef
@@ -125,12 +161,18 @@ def "step"
   player2_target = -100
   if player2_dir == "r" "player2_target = 100"
 
+  // increase speed while on ground
+  player1_speedmod = player1_speed
+  if player1_grounded "player1_speedmod += 2"
+  player2_speedmod = player2_speed
+  if player2_grounded "player2_speedmod += 2"
+
   if "d".pressed (
-    player1_xvel = 15
+    player1_xvel += player1_speedmod
     player1_dir = "r"
   )
   if "a".pressed (
-    player1_xvel = -15
+    player1_xvel -= player1_speedmod
     player1_dir = "l"
   )
   if "w".pressed and player1_grounded (
@@ -141,11 +183,11 @@ def "step"
 )
 
   if "right arrow".pressed (
-    player2_xvel = 15
+    player2_xvel += player2_speedmod
     player2_dir = "r"
   )
   if "left arrow".pressed (
-    player2_xvel = -15
+    player2_xvel -= player2_speedmod
     player2_dir = "l"
   )
   if "up arrow".pressed and player2_grounded (
@@ -155,9 +197,9 @@ def "step"
     player2_target *= 0.1
   )
 
-  player1_yvel -= 2
+  player1_yvel -= gravity
   player1_xvel *= 0.8
-  player2_yvel -= 2
+  player2_yvel -= gravity
   player2_xvel *= 0.8
 
   player1_x += player1_xvel
@@ -325,18 +367,18 @@ if stage != 0 (
   )
 
   c #ddd
-  loc 2 -2 100 50
-  square 200 50 10 1
+  loc 2 -2 80 50
+  square 150 50 10 1
   c #000
-  loc 2 -2 30 50
+  loc 2 -2 20 50
   text "<player1_health>%" 15
-  loc 2 -2 130 50
+  loc 2 -2 110 50
   text "<player2_health>%" 15
 )
 if stage == github ++ "assets/stages/spike.png" (
   c #000
-  goto 0 0
-  collide 1000 30 50 false
+  goto 0 -30
+  collide 1000 60 50 false
 
   goto 250 165
   collide 200 40 230 true

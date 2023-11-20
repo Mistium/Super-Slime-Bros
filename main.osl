@@ -38,18 +38,29 @@ def "switchslime" "type,player"
 if type == "basic" (
   out_speed = 2
   out_knockback = 2
+  out_weight = 1.5
 )
-if type == "basic" (
-  out_speed = 2
-  out_knockback = 2
+if type == "heavy" (
+  out_speed = 1
+  out_knockback = 6
+  out_weight = 2.5
+)
+if type == "light" (
+  out_speed = 4
+  out_knockback = 1
+  out_weight = 1
 )
 if player == 1 (
   player1_type = type
+  player1_speed = out_speed
+  player1_knockback = out_knockback
+  player1_gravity = out_weight
 )
 if player == 2 (
   player2_type = type
   player2_speed = out_speed
   player2_knockback = out_knockback
+  player2_gravity = out_weight
 )
 endef
 
@@ -64,7 +75,6 @@ window "dimensions" 1200 700
 
 github = "https://raw.githubusercontent.com/Mistium/Super-Slime-Bros/main/"
 
-gravity = 1.5
 stage = 0
 selected_stage = 0
 page = "main"
@@ -193,9 +203,9 @@ def "step"
     player2_target *= 0.1
   )
 
-  player1_yvel -= gravity
+  player1_yvel -= player1_gravity
   player1_xvel *= 0.8
-  player2_yvel -= gravity
+  player2_yvel -= player2_gravity
   player2_xvel *= 0.8
 
   player1_x += player1_xvel
@@ -316,6 +326,7 @@ if stage == 0 (
     start = frame_width - 10 / url.imageinfo("width") * url.imageinfo("height") / -2
     loc 999 2 0 start + scroll_y - 30
     level url
+    level github ++ "assets/stages/tree.png"
     frame "clear"
   )
   if page == "play" (

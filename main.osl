@@ -248,14 +248,14 @@ endef
 def "collide" "width,height,reset,droppable"
 c #000
 hitbox width * zoom height * zoom player1_x player1_y - 50
-if ( ( "s".pressed.not and droppable ) or droppable.not ) and collided (
+if ( "s".pressed.not and droppable ) or droppable.not and collided (
   player1_grounded = true
   player1_y = reset
   player1_yvel = 0
 )
 
 hitbox width * zoom height * zoom player2_x player2_y - 50
-if ( ( "down arrow".pressed.not and droppable ) or droppable.not ) and collided (
+if ( "down arrow".pressed.not and droppable ) or droppable.not and collided (
   player2_grounded = true
   player2_y = reset
   player2_yvel = 0
@@ -299,7 +299,9 @@ if stage == 0 (
     ssb_button "Quit Game" "quit"
 
     loc -5 -5 mouse_x / 10 mouse_y / 10
-    image github ++ "assets/stages/spike.png" 1000 * zoom
+    hzoom = zoom / 2
+    image github ++ "assets/stages/spike.png" window_width + 700 * hzoom
+    
   )
   if page == "level_select" (
     loc 2 2 30 -50
@@ -312,7 +314,19 @@ if stage == 0 (
     if selected_stage == 0 "text txt 10"
     loc 2 -2 210 60
     ssb_button "Back to Main Menu" "main"
+    loc 2 2 20 -100
+    x = x_position
+    y = y_position
+    loc 2 -2 400 200
+    c #888
+    frame x y x_position y_position 400
+    loc 2 2 30 -30 + scroll_y
+    text "Player 1 Pick SLime" 10 : c#000
 
+    loc 2 2 30 -300 + scroll_y
+    text "Player 2 Pick A Slime" 10 : c#000
+
+    frame "clear"
     loc 999 999 220 30
     frame_width = window_width - 450
     if lvl_page == 1 and ( stage == 0 ) (
@@ -321,7 +335,7 @@ if stage == 0 (
     if lvl_page == 2 and ( stage == 0 ) (
       level github ++ "assets/stages/tree.png"
     )
-    if lvl_page < 2 and ( stage == 0 ) (
+    if lvl_page < 2 and ( page == "level_select" ) (
       loc -2 -2 -40 40
       square 30 30 15 : c#000
       square 30 30 10 : c#ddd
@@ -332,7 +346,7 @@ if stage == 0 (
         lvl_page += 1
       )
     )
-    if lvl_page > 1 and ( stage == 0 ) (
+    if lvl_page > 1 and ( page == "level_select" ) (
       loc 2 -2 480 40
       square 30 30 15 : c#000
       square 30 30 10 : c#ddd

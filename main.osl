@@ -74,6 +74,7 @@ p1_lst = timer
 p2_lst = timer
 
 window "dimensions" 1200 700
+window "show"
 
 github = "https://raw.githubusercontent.com/Mistium/Super-Slime-Bros/main/"
 
@@ -102,14 +103,14 @@ def "p2_idle"
 endef
 
 def "attack" "player,attack_type"
-c #000
   if player == 1 and ( attack_type == 1 ) ( timer - player2_ifrm > 3 )(
     goto player1_x player1_y
     change -40 player1_xvel
     if player1_dir == "r" "change 80"
     hitbox 200 150 player2_x player2_y
     if collided "player2_health += 2"
-    player2_yvel += 2
+    player2_yvel += 1
+    player2_y += 10
     player2_ifrm = timer
     if player1_dir == "r" and collided "player2_xvel += player2_health / player2_knockback"
     if player1_dir == "l" and collided "player2_xvel -= player2_health / player2_knockback"
@@ -120,7 +121,8 @@ c #000
     if player2_dir == "r" "change 80"
     hitbox 200 150 player1_x player1_y
     if collided "player1_health += 2"
-    player1_yvel += 2
+    player1_yvel += 1
+    player1_y += 10
     player1_ifrm = timer
     if player2_dir == "r" and collided "player1_xvel += player1_health / player1_knockback"
     if player2_dir == "l" and collided "player1_xvel -= player1_health / player1_knockback"
@@ -273,9 +275,9 @@ endef
 def "level" "url"
   multiplier = frame_width - 10 / url.imageinfo("width")
   if selected_stage == url (
-    square url.imageinfo("width") * multiplier - 30 url.imageinfo("height") * multiplier 20 : c#000
+    square url.imageinfo("width") * multiplier - 30 window_height - 100 20 : c#000
   )
-  square url.imageinfo("width") * multiplier - 30 url.imageinfo("height") * multiplier 10 : c#ddd
+  square url.imageinfo("width") * multiplier - 30 window_height - 100 10 : c#ddd
   if clicked "selected_stage = url"
   image url frame_width - 40
 endef
@@ -311,19 +313,36 @@ if stage == 0 (
     loc 2 -2 210 60
     ssb_button "Back to Main Menu" "main"
 
-    loc 999 999 220 0
+    loc 999 999 220 30
     frame_width = window_width - 450
-    if lvl_page == 1 (
+    if lvl_page == 1 and ( stage == 0 ) (
       level github ++ "assets/stages/spike.png"
     )
-    if lvl_page == 2 (
+    if lvl_page == 2 and ( stage == 0 ) (
       level github ++ "assets/stages/tree.png"
     )
-    loc -2 -2 -40 40
-    square 30 30 10 : c#ddd
-    if mouse_touching "cursor pointer"
-    icon "right-arrow" 1 : c#000
-    frame "clear"
+    if lvl_page < 2 and ( stage == 0 ) (
+      loc -2 -2 -40 40
+      square 30 30 15 : c#000
+      square 30 30 10 : c#ddd
+      if mouse_touching "cursor pointer"
+      icon "right-arrow" 1 : c#000
+      if clicked and can (
+        can = false
+        lvl_page += 1
+      )
+    )
+    if lvl_page > 1 and ( stage == 0 ) (
+      loc 2 -2 480 40
+      square 30 30 15 : c#000
+      square 30 30 10 : c#ddd
+      if mouse_touching "cursor pointer"
+      icon "left-arrow" 1 : c#000
+      if clicked and can (
+        can = false
+        lvl_page -= 1
+      )
+    )
   )
   if page == "play" (
     page = 0
@@ -339,7 +358,7 @@ if stage != 0 (
 
   cam_x += cam_x_target - cam_x / 10
   cam_y += cam_y_target - cam_y / 10
-
+ 
   stage_x = cam_x
   stage_y = cam_y
 
@@ -368,7 +387,8 @@ if stage != 0 (
     player2_y = 500
     player2_lives -= 1
   )
-
+)
+if stage != 0 (
   c #ddd
   loc 2 -2 80 50
   square 150 50 10 1
@@ -377,8 +397,16 @@ if stage != 0 (
   text "<player1_health>%" 15
   loc 2 -2 110 50
   text "<player2_health>%" 15
+  loc 2 2 35 -35
+  square 30 30 15 : c#000
+  square 30 30 10 : c#ddd
+  icon "home" 1 : c#000
+  if clicked (
+    stage = 0
+    page = "main"
+  )
 )
-if stage == github ++ "assets/stages/spike.png" (
+if stage.contains("spike") (
   c #000
   goto 0 -30
   collide 1000 60 50 false
@@ -392,8 +420,22 @@ if stage == github ++ "assets/stages/spike.png" (
   goto -20 330
   collide 160 40 400 true
 )
+if stage.contains("tree") (
+  c #000
+  goto 0 -30
+  collide 1000 60 50 false
+
+  goto 350 120
+  collide 100 40 200 true
+
+  goto -320 195
+  collide 200 40 260 true
+
+  goto -20 330
+  collide 160 40 400 true
+)
 if stage != 0 (
   render_players
 )
-
-import "win-buttons"
+if mouse_down.not "can = true"
+frame "clear"

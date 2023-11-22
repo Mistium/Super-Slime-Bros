@@ -319,23 +319,32 @@ if stage == 0 (
     y = y_position
     loc 2 -2 400 200
     c #888
-    frame x y x_position y_position 400
+    frame x y x_position y_position 300
     loc 2 2 30 -30 + scroll_y
     text "Player 1 Pick SLime" 10 : c#000
-
+loc 2 2 30 -70 + scroll_y
+text "Slime Type" 10
+loc 2 2 190 -140 + scroll_y
+square 350 100 10 : c#fff
+change   
     loc 2 2 30 -300 + scroll_y
     text "Player 2 Pick A Slime" 10 : c#000
 
     frame "clear"
+loc 999 -2 200 40
+text "<lvl_page>/<tot_lvls> (<current_level_view>)" 10
     loc 999 999 220 30
     frame_width = window_width - 450
+tot_lvls = 2
     if lvl_page == 1 and ( stage == 0 ) (
       level github ++ "assets/stages/spike.png"
+current_level_view = "Spike"
     )
     if lvl_page == 2 and ( stage == 0 ) (
       level github ++ "assets/stages/tree.png"
+current_level_view = "Tree"
     )
-    if lvl_page < 2 and ( page == "level_select" ) (
+    if page == "level_select" (
       loc -2 -2 -40 40
       square 30 30 15 : c#000
       square 30 30 10 : c#ddd
@@ -346,7 +355,7 @@ if stage == 0 (
         lvl_page += 1
       )
     )
-    if lvl_page > 1 and ( page == "level_select" ) (
+    if page == "level_select" (
       loc 2 -2 480 40
       square 30 30 15 : c#000
       square 30 30 10 : c#ddd
@@ -357,6 +366,8 @@ if stage == 0 (
         lvl_page -= 1
       )
     )
+if lvl_page < 1 "lvl_page = tot_lvls"
+if lvl_page > tot_lvls "lvl_page = 1"
   )
   if page == "play" (
     page = 0

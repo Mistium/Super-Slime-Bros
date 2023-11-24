@@ -1,3 +1,34 @@
+def "switchslime" "type,player"
+if type == "basic" (
+  out_speed = 2
+  out_knockback = 2
+  out_weight = 2
+)
+if type == "heavy" (
+  out_speed = 1
+  out_knockback = 6
+  out_weight = 2.5
+)
+if type == "light" (
+  out_speed = 4
+  out_knockback = 1
+  out_weight = 1
+)
+if player == 1 (
+  player1_type = type
+  player1_speed = out_speed
+  player1_knockback = out_knockback
+  player1_gravity = out_weight
+)
+if player == 2 (
+  player2_type = type
+  player2_speed = out_speed
+  player2_knockback = out_knockback
+  player2_gravity = out_weight
+)
+endef
+
+def "reset_data"
 // player main data
 player1_x = -100
 player1_y = 50
@@ -36,35 +67,10 @@ player2_target = 100
 player2_grounded = true
 player2_dir = "l"
 
-def "switchslime" "type,player"
-if type == "basic" (
-  out_speed = 2
-  out_knockback = 2
-  out_weight = 2
-)
-if type == "heavy" (
-  out_speed = 1
-  out_knockback = 6
-  out_weight = 2.5
-)
-if type == "light" (
-  out_speed = 4
-  out_knockback = 1
-  out_weight = 1
-)
-if player == 1 (
-  player1_type = type
-  player1_speed = out_speed
-  player1_knockback = out_knockback
-  player1_gravity = out_weight
-)
-if player == 2 (
-  player2_type = type
-  player2_speed = out_speed
-  player2_knockback = out_knockback
-  player2_gravity = out_weight
-)
-endef
+shake_x = 0
+shake_y = 0
+shake_x_vel = 0
+shake_y_vel = 0
 
 // slime setup
 switchslime "basic" 1
@@ -72,6 +78,12 @@ switchslime "basic" 2
 
 p1_lst = timer
 p2_lst = timer
+
+cam_x = 0
+cam_y = 0
+stage_x = 0
+stage_y = 0
+endef
 
 window "dimensions" 1200 700
 window "show"
@@ -82,11 +94,6 @@ stage = 0
 selected_stage = 0
 page = "main"
 
-cam_x = 0
-cam_y = 0
-stage_x = 0
-stage_y = 0
-
 window_colour = #fff
 zoom = 1
 
@@ -96,36 +103,50 @@ def "p1_idle"
   player1_endfrm = 3
 endef
 
+def "p1_attack"
+  if timer - player2_ifrm > 0.5 (
+    player2_health += 2
+    player2_yvel += 1
+    player2_y += 10
+    if player1_dir == "r" "player2_xvel += player2_health / player2_knockback"
+    if player1_dir == "l" "player2_xvel -= player2_health / player2_knockback"
+  )
+  player2_ifrm = timer
+  pause = timer + 0.1
+endef
+
 def "p2_idle"
   player2_anim = "idle"
   player2_frame = 1
   player2_endfrm = 3
 endef
 
+def "p2_attack"
+  if timer - player1_ifrm > 0.5 (
+    player1_health += 2
+    player1_yvel += 1
+    player1_y += 10
+    if player2_dir == "r" "player1_xvel += player1_health / player1_knockback"
+    if player2_dir == "l" "player1_xvel -= player1_health / player1_knockback"
+  )
+  player1_ifrm = timer
+  pause = timer + 0.1
+endef
+
 def "attack" "player,attack_type"
-  if player == 1 and ( attack_type == 1 ) ( timer - player2_ifrm > 3 )(
+  if player == 1 and ( attack_type == 1 ) ( timer - player2_ifrm > 0.5 )(
     goto player1_x player1_y
     change -40 player1_xvel
     if player1_dir == "r" "change 80"
     hitbox 200 150 player2_x player2_y
-    if collided "player2_health += 2"
-    player2_yvel += 1
-    player2_y += 10
-    player2_ifrm = timer
-    if player1_dir == "r" and collided "player2_xvel += player2_health / player2_knockback"
-    if player1_dir == "l" and collided "player2_xvel -= player2_health / player2_knockback"
+    if collided "p1_attack"
   )
-  if player == 2 and ( attack_type == 1 ) and ( timer - player1_ifrm > 3 ) (
+  if player == 2 and ( attack_type == 1 ) (
     goto player2_x player2_y
     change -40 player2_vel
     if player2_dir == "r" "change 80"
     hitbox 200 150 player1_x player1_y
-    if collided "player1_health += 2"
-    player1_yvel += 1
-    player1_y += 10
-    player1_ifrm = timer
-    if player2_dir == "r" and collided "player1_xvel += player1_health / player1_knockback"
-    if player2_dir == "l" and collided "player1_xvel -= player1_health / player1_knockback"
+    if collided "p2_attack"
   )
 endef
 
@@ -216,11 +237,11 @@ def "step"
   player1_stretch += player1_target - player1_stretch / 4
   player2_stretch += player2_target - player2_stretch / 4
 
-  if timer - 0.1 > p1_lst (
+  if timer - 0.15 > p1_lst (
     player1_frame += 1
     p1_lst = timer
   )
-  if timer - 0.1 > p2_lst (
+  if timer - 0.15 > p2_lst (
     player2_frame += 1
     p2_lst = timer
   )
@@ -235,12 +256,16 @@ endef
 def "render_players"
   goto player1_x + cam_x player1_y + cam_y
   stretch "x" player1_stretch.int
-  image github ++ "assets/" ++ player1_type ++ "/" ++ player1_anim ++ "/" ++ player1_frame.round ++ ".png" 200
+  if timer - player1_ifrm > 0.5 or ( player1_frame.round % 2 == 0 ) (
+    image github ++ "assets/" ++ player1_type ++ "/" ++ player1_anim ++ "/" ++ player1_frame.round ++ ".png" 200
+  )
   change 0 60
   text "1" 10 : c#000
   goto player2_x + cam_x player2_y + cam_y
   stretch "x" player2_stretch.int
-  image github ++ "assets/" ++ player2_type ++ "/" ++ player2_anim ++ "/" ++ player2_frame.round ++ ".png" 200
+  if timer - player2_ifrm > 0.5 or ( player2_frame.round % 2 == 0 ) (
+    image github ++ "assets/" ++ player2_type ++ "/" ++ player2_anim ++ "/" ++ player2_frame.round ++ ".png" 200
+  )
   change 0 60
   text "2" 10 : c#000
 endef
@@ -282,6 +307,10 @@ def "level" "url"
   image url frame_width - 40
 endef
 
+def "screenshake" "x_mag,y_mag"
+  shake_x_vel += x_mag * 10
+  shake_y_vel += y_mag * 10
+endef
 
 def "main"
 if stage == 0 (
@@ -301,7 +330,7 @@ if stage == 0 (
     loc -5 -5 mouse_x / 10 mouse_y / 10
     hzoom = zoom / 2
     image github ++ "assets/stages/spike.png" window_width + 700 * hzoom
-    
+
   )
   if page == "level_select" (
     loc 2 2 30 -50
@@ -326,7 +355,7 @@ if stage == 0 (
     text "Slime Type" 10
     loc 2 2 190 -140 + scroll_y
     square 350 100 10 : c#fff
-    change   
+    change
     loc 2 2 30 -300 + scroll_y
     text "Player 2 Pick A Slime" 10 : c#000
 
@@ -372,6 +401,7 @@ if stage == 0 (
   if page == "play" (
     page = 0
     stage = selected_stage
+    reset_data
   )
   if page == "quit" (
     window "stop"
@@ -380,16 +410,20 @@ if stage == 0 (
 if stage != 0 (
   cam_x_target = player1_x + player2_x / -2
   cam_y_target = player1_y + player2_y / -2
-
+  shake_x += shake_x_mag
+  shake_y += shake_y_mag
+  shake_x_mag -= shake_x_mag * 1.5
+  shake_y_mag -= shake_y_mag * 1.5
   cam_x += cam_x_target - cam_x / 10
   cam_y += cam_y_target - cam_y / 10
- 
-  stage_x = cam_x
-  stage_y = cam_y
+
+  stage_x = cam_x + shake_x
+  stage_y = cam_y + shake_y
 
   direction 90
   stretch "x" 100
   goto stage_x stage_y
+  if stage.contains("tree") "change_y 60"
   image stage 1000 * zoom
 
   step
@@ -465,7 +499,10 @@ if stage != 0 (
 if mouse_down.not "can = true"
 endef
 
+reset_data
+
 mainloop:
 
 main
+
 frame "clear"

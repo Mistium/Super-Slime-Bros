@@ -416,10 +416,10 @@ if stage == 0 (
     )
     if page == "level_select" (
       loc -2 -2 -40 40
-      square 30 30 15 : c#000
+      square 30 30 20 : c#000
       square 30 30 10 : c#ddd
-      if mouse_touching "cursor pointer"
       icon "right-arrow" 1 : c#000
+      if mouse_touching "cursor pointer"
       if clicked and can (
         can = false
         lvl_page += 1
@@ -427,10 +427,10 @@ if stage == 0 (
     )
     if page == "level_select" (
       loc 2 -2 480 40
-      square 30 30 15 : c#000
+      square 30 30 20 : c#000
       square 30 30 10 : c#ddd
-      if mouse_touching "cursor pointer"
       icon "left-arrow" 1 : c#000
+      if mouse_touching "cursor pointer"
       if clicked and can (
         can = false
         lvl_page -= 1
@@ -465,6 +465,7 @@ if stage != 0 (
   stretch "x" 100
   goto stage_x stage_y
   if stage.contains("tree") "change_y 60"
+  if stage.contains("mushroom") "change_y 105"
   image stage 1000 * zoom
 
   step

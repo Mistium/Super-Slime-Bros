@@ -2,19 +2,19 @@ def "switchslime" "type,player"
 if type == "basic" (
   out_speed = 3
   out_knockback = 2
-  out_weight = 1.5
+  out_weight = 1.6
   out_size = 1
 )
 if type == "heavy" (
-  out_speed = 1
+  out_speed = 2
   out_knockback = 6
-  out_weight = 2.5
+  out_weight = 2
   out_size = 1.5
 )
 if type == "light" (
   out_speed = 6
-  out_knockback = 1
-  out_weight = 1
+  out_knockback = 0.5
+  out_weight = 1.2
   out_size = 1
 )
 if player == 1 (
@@ -77,10 +77,6 @@ def "reset_data"
   shake_x_vel = 0
   shake_y_vel = 0
 
-  // slime setup
-  switchslime "basic" 1
-  switchslime "heavy" 2
-
   p1_lst = timer
   p2_lst = timer
 
@@ -89,6 +85,14 @@ def "reset_data"
   stage_x = 0
   stage_y = 0
 endef
+
+main_image = [0,3].random
+
+curlast = 0
+curframe = 0
+
+switchslime "basic" 1
+switchslime "basic" 2
 
 window "dimensions" 1200 700
 window "show"
@@ -111,8 +115,8 @@ endef
 def "p1_attack"
   if timer - player2_ifrm > 0.5 (
     player2_health += 2
-    player2_yvel += 1
-    player2_y += 10
+    player2_yvel += player2_health / player2_knockback
+    player2_y += 20
     if player1_dir == "r" "player2_xvel += player2_health / player2_knockback"
     if player1_dir == "l" "player2_xvel -= player2_health / player2_knockback"
   )
@@ -129,8 +133,8 @@ endef
 def "p2_attack"
   if timer - player1_ifrm > 0.5 (
     player1_health += 2
-    player1_yvel += 1
-    player1_y += 10
+    player1_yvel += player1_health / player1_knockback
+    player1_y += 20
     if player2_dir == "r" "player1_xvel += player1_health / player1_knockback"
     if player2_dir == "l" "player1_xvel -= player1_health / player1_knockback"
   )
@@ -259,14 +263,16 @@ def "step"
 endef
 
 def "render_players"
-  goto player1_x + cam_x player1_y + cam_y
+  goto player1_x + cam_x player1_y + cam_y + 20
+  if player1_type == "heavy" "change_y 25"
   stretch "x" player1_stretch.int
   if timer - player1_ifrm > 0.5 or ( player1_frame.round % 2 == 0 ) (
     image github ++ "assets/" ++ player1_type ++ "/" ++ player1_anim ++ "/" ++ player1_frame.round ++ ".png" 200 * player1_size
   )
   change 0 60
   text "1" 10 : c#000
-  goto player2_x + cam_x player2_y + cam_y
+  goto player2_x + cam_x player2_y + cam_y + 20
+  if player2_type == "heavy" "change_y 25"
   stretch "x" player2_stretch.int
   if timer - player2_ifrm > 0.5 or ( player2_frame.round % 2 == 0 ) (
     image github ++ "assets/" ++ player2_type ++ "/" ++ player2_anim ++ "/" ++ player2_frame.round ++ ".png" 200 * player2_size
@@ -278,14 +284,14 @@ endef
 def "collide" "width,height,reset,droppable"
 c #000
 hitbox width * zoom height * zoom player1_x player1_y - 50
-if ( "s".pressed.not and droppable ) or droppable.not and collided (
+if ( "s".pressed.not and "w".pressed.not and droppable ) or droppable.not and collided (
   player1_grounded = true
   player1_y = reset
   player1_yvel = 0
 )
 
 hitbox width * zoom height * zoom player2_x player2_y - 50
-if ( "down arrow".pressed.not and droppable ) or droppable.not and collided (
+if ( "down arrow".pressed.not and "up arrow".pressed.not and droppable ) or droppable.not and collided (
   player2_grounded = true
   player2_y = reset
   player2_yvel = 0
@@ -304,12 +310,17 @@ endef
 
 def "level" "url"
   multiplier = frame_width - 10 / url.imageinfo("width")
-  if selected_stage == url (
-    square url.imageinfo("width") * multiplier - 30 window_height - 100 20 : c#000
-  )
+  if selected_stage == url "square url.imageinfo("width") * multiplier - 30 window_height - 100 20 : c#000"
   square url.imageinfo("width") * multiplier - 30 window_height - 100 10 : c#ddd
   if clicked "selected_stage = url"
   image url frame_width - 40
+endef
+
+def "slime" "type,anim,selected,p"
+  if selected == type "square 80 80 15 : c#000"
+  square 80 80 10 : c#ddd
+  if clicked "switchslime type p"
+  image github ++ "assets/" ++ type ++ "/" ++ anim ++ "/" ++ curframe.round ++ ".png" 130
 endef
 
 def "screenshake" "x_mag,y_mag"
@@ -326,7 +337,7 @@ if stage == 0 (
     text "Super Slime Bros" 20 : c#000
 
     loc 2 2 210 -120
-    ssb_button "Start Battle :O" "level_select"
+    ssb_button "Start Battle" "level_select"
     lvl_page = 1
 
     loc 2 2 210 -180
@@ -348,28 +359,49 @@ if stage == 0 (
     if selected_stage == 0 "text txt 10"
     loc 2 -2 210 60
     ssb_button "Back to Main Menu" "main"
-    loc 2 2 20 -100
+
+    if timer - 0.15 > curlast "curframe += 1"
+    if timer - 0.15 > curlast "curlast = timer"
+     if curframe > 6 "curframe = 1"
+
+    c #888
+    loc 2 2 20 -80
     x = x_position
     y = y_position
-    loc 2 -2 400 200
-    c #888
-    frame x y x_position y_position 300
+    loc 2 -2 400 150
+    frame x y x_position y_position 450
+
     loc 2 2 30 -30 + scroll_y
     text "Player 1 Pick SLime" 10 : c#000
     loc 2 2 30 -70 + scroll_y
     text "Slime Type" 10
     loc 2 2 190 -140 + scroll_y
-    square 350 100 10 : c#fff
-    change
+    square 300 100 10 : c#fff
+    change -100
+    slime "basic" "walk" player1_type 1
+    change 100
+    slime "light" "walk" player1_type 1
+    change 100
+    slime "heavy" "walk" player1_type 1
     loc 2 2 30 -300 + scroll_y
     text "Player 2 Pick A Slime" 10 : c#000
+    loc 2 2 30 -340 + scroll_y
+    text "Slime Type" 10
+    loc 2 2 190 -410 + scroll_y
+    square 300 100 10 : c#fff
+    change -100
+    slime "basic" "walk" player2_type 2
+    change 100
+    slime "light" "walk" player2_type 2
+    change 100
+    slime "heavy" "walk" player2_type 2
 
     frame "clear"
     loc 999 -2 200 40
-    text "<lvl_page>/<tot_lvls> (<current_level_view>)" 10
+    text "<lvl_page>/<tot_lvls> (<current_level_view>)" 10 : c#000
     loc 999 999 220 30
     frame_width = window_width - 450
-    tot_lvls = 2
+    tot_lvls = 3
     if lvl_page == 1 and ( stage == 0 ) (
       level github ++ "assets/stages/spike.png"
       current_level_view = "Spike"
@@ -377,6 +409,10 @@ if stage == 0 (
     if lvl_page == 2 and ( stage == 0 ) (
       level github ++ "assets/stages/tree.png"
       current_level_view = "Tree"
+    )
+    if lvl_page == 3 and ( stage == 0 ) (
+      level github ++ "assets/stages/mushroom.png"
+      current_level_view = "Mushroom"
     )
     if page == "level_select" (
       loc -2 -2 -40 40
@@ -477,30 +513,30 @@ if stage != 0 (
 if stage.contains("spike") (
   c #000
   goto 0 -30
-  collide 1000 60 50 false
+  collide 1000 60 30 false
 
   goto 250 165
-  collide 200 40 230 true
+  collide 200 40 210 true
 
   goto -320 195
-  collide 200 40 260 true
+  collide 200 40 240 true
 
   goto -20 330
-  collide 160 40 400 true
+  collide 160 40 380 true
 )
 if stage.contains("tree") (
   c #000
   goto 0 -30
-  collide 1000 60 50 false
+  collide 1000 60 30 false
 
   goto 350 120
-  collide 100 40 200 true
+  collide 100 40 180 true
 
   goto -320 195
-  collide 200 40 260 true
+  collide 200 40 240 true
 
   goto -20 330
-  collide 160 40 400 true
+  collide 160 40 380 true
 )
 if stage != 0 (
   render_players

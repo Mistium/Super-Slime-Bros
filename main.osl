@@ -538,6 +538,20 @@ if stage.contains("tree") (
   goto -20 330
   collide 160 40 380 true
 )
+if stage.contains("mushroom") (
+  c #000
+  goto 0 -30
+  collide 1000 60 30 false
+
+  goto 350 120
+  collide 100 40 180 true
+
+  goto -320 195
+  collide 200 40 240 true
+
+  goto -20 330
+  collide 160 40 380 true
+)
 if stage != 0 (
   render_players
 )

@@ -1,88 +1,93 @@
 def "switchslime" "type,player"
 if type == "basic" (
-  out_speed = 2
+  out_speed = 3
   out_knockback = 2
-  out_weight = 2
+  out_weight = 1.5
+  out_size = 1
 )
 if type == "heavy" (
   out_speed = 1
   out_knockback = 6
   out_weight = 2.5
+  out_size = 1.5
 )
 if type == "light" (
-  out_speed = 4
+  out_speed = 6
   out_knockback = 1
   out_weight = 1
+  out_size = 1
 )
 if player == 1 (
   player1_type = type
   player1_speed = out_speed
   player1_knockback = out_knockback
   player1_gravity = out_weight
+  player1_size = out_size
 )
 if player == 2 (
   player2_type = type
   player2_speed = out_speed
   player2_knockback = out_knockback
   player2_gravity = out_weight
+  player2_size = out_size
 )
 endef
 
 def "reset_data"
-// player main data
-player1_x = -100
-player1_y = 50
-player1_xvel = 0
-player1_yvel = 0
-player1_health = 0
-player1_lives = 3
-player1_dead = false
-player1_ifrm = 0
+  // player main data
+  player1_x = -100
+  player1_y = 50
+  player1_xvel = 0
+  player1_yvel = 0
+  player1_health = 0
+  player1_lives = 3
+  player1_dead = false
+  player1_ifrm = 0
 
-player2_x = 100
-player2_y = 50
-player2_xvel = 0
-player2_yvel = 0
-player2_health = 0
-player2_dead = false
-player2_ifrm = 0
+  player2_x = 100
+  player2_y = 50
+  player2_xvel = 0
+  player2_yvel = 0
+  player2_health = 0
+  player2_dead = false
+  player2_ifrm = 0
 
-// player animation variables
-player1_anim = "idle"
-player1_frame = 1
-player1_endfrm = 3
+  // player animation variables
+  player1_anim = "idle"
+  player1_frame = 1
+  player1_endfrm = 3
 
-player2_anim = "idle"
-player2_frame = 1
-player2_endfrm = 3
+  player2_anim = "idle"
+  player2_frame = 1
+  player2_endfrm = 3
 
-// player display variables
-player1_stretch = -100
-player1_target = -100
-player1_grounded = true
-player1_dir = "r"
+  // player display variables
+  player1_stretch = -100
+  player1_target = -100
+  player1_grounded = true
+  player1_dir = "r"
 
-player2_stretch = 100
-player2_target = 100
-player2_grounded = true
-player2_dir = "l"
+  player2_stretch = 100
+  player2_target = 100
+  player2_grounded = true
+  player2_dir = "l"
 
-shake_x = 0
-shake_y = 0
-shake_x_vel = 0
-shake_y_vel = 0
+  shake_x = 0
+  shake_y = 0
+  shake_x_vel = 0
+  shake_y_vel = 0
 
-// slime setup
-switchslime "basic" 1
-switchslime "basic" 2
+  // slime setup
+  switchslime "basic" 1
+  switchslime "heavy" 2
 
-p1_lst = timer
-p2_lst = timer
+  p1_lst = timer
+  p2_lst = timer
 
-cam_x = 0
-cam_y = 0
-stage_x = 0
-stage_y = 0
+  cam_x = 0
+  cam_y = 0
+  stage_x = 0
+  stage_y = 0
 endef
 
 window "dimensions" 1200 700
@@ -257,14 +262,14 @@ def "render_players"
   goto player1_x + cam_x player1_y + cam_y
   stretch "x" player1_stretch.int
   if timer - player1_ifrm > 0.5 or ( player1_frame.round % 2 == 0 ) (
-    image github ++ "assets/" ++ player1_type ++ "/" ++ player1_anim ++ "/" ++ player1_frame.round ++ ".png" 200
+    image github ++ "assets/" ++ player1_type ++ "/" ++ player1_anim ++ "/" ++ player1_frame.round ++ ".png" 200 * player1_size
   )
   change 0 60
   text "1" 10 : c#000
   goto player2_x + cam_x player2_y + cam_y
   stretch "x" player2_stretch.int
   if timer - player2_ifrm > 0.5 or ( player2_frame.round % 2 == 0 ) (
-    image github ++ "assets/" ++ player2_type ++ "/" ++ player2_anim ++ "/" ++ player2_frame.round ++ ".png" 200
+    image github ++ "assets/" ++ player2_type ++ "/" ++ player2_anim ++ "/" ++ player2_frame.round ++ ".png" 200 * player2_size
   )
   change 0 60
   text "2" 10 : c#000
@@ -439,11 +444,15 @@ if stage != 0 (
   if timer - player1_deadtime > 5 and player1_dead (
     player1_x = 0
     player1_y = 500
+    player1_xvel = 0
+    player1_yvel = 0
     player1_lives -= 1
   )
   if timer - player2_deadtime > 5 and player2_dead (
     player2_x = 0
     player2_y = 500
+    player2_xvel = 0
+    player2_yvel = 0
     player2_lives -= 1
   )
 )

@@ -1,20 +1,20 @@
 def "switchslime" "type,player"
 if type == "basic" (
-  out_speed = 3
+  out_speed = 4
   out_knockback = 2
-  out_weight = 1.6
+  out_weight = 1.75
   out_size = 1
 )
 if type == "heavy" (
-  out_speed = 2
-  out_knockback = 6
+  out_speed = 3
+  out_knockback = 4
   out_weight = 2
   out_size = 1.5
 )
 if type == "light" (
-  out_speed = 6
-  out_knockback = 0.5
-  out_weight = 1.2
+  out_speed = 5
+  out_knockback = 1
+  out_weight = 1.5
   out_size = 1
 )
 if player == 1 (
@@ -72,6 +72,12 @@ def "reset_data"
   player2_grounded = true
   player2_dir = "l"
 
+  player1_ability = "none"
+  player1_ability_lastused = 0
+
+  player2_ability = "none"  
+  player2_ability_lastused = 0
+
   shake_x = 0
   shake_y = 0
   shake_x_vel = 0
@@ -87,6 +93,11 @@ def "reset_data"
 endef
 
 main_image = [0,3].random
+
+types = {}
+types.key("basic") = "The Basic Slime :/"
+types.key("heavy") = "Slower, heavier, less knockback"
+types.key("light") = "Faster, lighter, more knockback"
 
 curlast = 0
 curframe = 0
@@ -115,10 +126,10 @@ endef
 def "p1_attack"
   if timer - player2_ifrm > 0.5 (
     player2_health += 2
-    player2_yvel += player2_health / player2_knockback
-    player2_y += 20
-    if player1_dir == "r" "player2_xvel += player2_health / player2_knockback"
-    if player1_dir == "l" "player2_xvel -= player2_health / player2_knockback"
+    player2_yvel += player2_health + 30 / player2_knockback / 10
+    player2_y += 40
+    if player1_dir == "r" "player2_xvel += player2_health + 30 / player2_knockback"
+    if player1_dir == "l" "player2_xvel -= player2_health + 30 / player2_knockback"
   )
   player2_ifrm = timer
   pause = timer + 0.1
@@ -133,17 +144,17 @@ endef
 def "p2_attack"
   if timer - player1_ifrm > 0.5 (
     player1_health += 2
-    player1_yvel += player1_health / player1_knockback
-    player1_y += 20
-    if player2_dir == "r" "player1_xvel += player1_health / player1_knockback"
-    if player2_dir == "l" "player1_xvel -= player1_health / player1_knockback"
+    player1_yvel += player1_health + 30 / player1_knockback / 10
+    player1_y += 40
+    if player2_dir == "r" "player1_xvel += player1_health + 30 / player1_knockback"
+    if player2_dir == "l" "player1_xvel -= player1_health + 30 / player1_knockback"
   )
   player1_ifrm = timer
   pause = timer + 0.1
 endef
 
 def "attack" "player,attack_type"
-  if player == 1 and ( attack_type == 1 ) ( timer - player2_ifrm > 0.5 )(
+  if player == 1 and ( attack_type == 1 ) (
     goto player1_x player1_y
     change -40 player1_xvel
     if player1_dir == "r" "change 80"
@@ -270,7 +281,8 @@ def "render_players"
     image github ++ "assets/" ++ player1_type ++ "/" ++ player1_anim ++ "/" ++ player1_frame.round ++ ".png" 200 * player1_size
   )
   change 0 60
-  text "1" 10 : c#000
+  square 20 20 10 : c#8a3d34
+  text "1" 10 : c#fff chx#-5
   goto player2_x + cam_x player2_y + cam_y + 20
   if player2_type == "heavy" "change_y 25"
   stretch "x" player2_stretch.int
@@ -278,7 +290,8 @@ def "render_players"
     image github ++ "assets/" ++ player2_type ++ "/" ++ player2_anim ++ "/" ++ player2_frame.round ++ ".png" 200 * player2_size
   )
   change 0 60
-  text "2" 10 : c#000
+  square 20 20 10 : c#345b8a
+  text "2" 10 : c#fff chx#-5
 endef
 
 def "collide" "width,height,reset,droppable"
@@ -310,17 +323,28 @@ endef
 
 def "level" "url"
   multiplier = frame_width - 10 / url.imageinfo("width")
-  if selected_stage == url "square url.imageinfo("width") * multiplier - 30 window_height - 100 20 : c#000"
-  square url.imageinfo("width") * multiplier - 30 window_height - 100 10 : c#ddd
+  w = url.imageinfo("width") * multiplier - 30
+  h = window_height - 100
+  if selected_stage == url "square w h 15 : c#000"
+  square w h 10 : c#ddd
   if clicked "selected_stage = url"
+  frame x_position - ( w / 2 ) y_position + ( h / 2 ) x_position + ( w / 2 ) y_position - ( h / 2 )
   image url frame_width - 40
+  frame "clear"
 endef
 
 def "slime" "type,anim,selected,p"
   if selected == type "square 80 80 15 : c#000"
-  square 80 80 10 : c#ddd
+  square 80 80 10 : c#eee
   if clicked "switchslime type p"
   image github ++ "assets/" ++ type ++ "/" ++ anim ++ "/" ++ curframe.round ++ ".png" 130
+endef
+
+def "ability" "type,selected,p"
+  if selected == type "square 80 80 15 : c#000"
+  square 80 80 10 : c#eee
+  if clicked "switchability type p"
+  image github ++ "assets/abilities/" ++ type ++ ".png" 130
 endef
 
 def "screenshake" "x_mag,y_mag"
@@ -343,6 +367,8 @@ if stage == 0 (
     loc 2 2 210 -180
     ssb_button "Quit Game" "quit"
 
+    loc 2 -2 210 210
+    image github ++ "assets/ui/controls.png" 210
     loc -5 -5 mouse_x / 10 mouse_y / 10
     hzoom = zoom / 2
     image github ++ "assets/stages/spike.png" window_width + 700 * hzoom
@@ -365,36 +391,67 @@ if stage == 0 (
      if curframe > 6 "curframe = 1"
 
     c #888
-    loc 2 2 20 -80
+    loc 2 2 0 -80
     x = x_position
     y = y_position
     loc 2 -2 400 150
-    frame x y x_position y_position 450
+    frame x y x_position y_position 750
 
-    loc 2 2 30 -30 + scroll_y
-    text "Player 1 Pick SLime" 10 : c#000
-    loc 2 2 30 -70 + scroll_y
+    loc 2 2 190 -190 + scroll_y
+    square 280 320 50 : c#fff
+    loc 2 2 35 -30 + scroll_y
+    text "Player 1" 13 : c#000
+    loc 2 2 35 -70 + scroll_y
     text "Slime Type" 10
     loc 2 2 190 -140 + scroll_y
-    square 300 100 10 : c#fff
+    square 280 80 30 : c#ddd
     change -100
     slime "basic" "walk" player1_type 1
     change 100
     slime "light" "walk" player1_type 1
     change 100
     slime "heavy" "walk" player1_type 1
-    loc 2 2 30 -300 + scroll_y
-    text "Player 2 Pick A Slime" 10 : c#000
-    loc 2 2 30 -340 + scroll_y
+    loc 2 2 35 -210 + scroll_y
+    text types.key(player1_type).destr 8 : c#000
+
+    loc 2 2 35 -240 + scroll_y
+    text "Slime Ability" 10
+    loc 2 2 190 -310 + scroll_y
+    square 280 80 30 : c#ddd
+    change -100
+    ability "dash" player1_ability 1
+    change 100
+    ability "heal" player1_ability 1
+    change 100
+    ability "" player1_ability 1
+
+    loc 2 2 190 -570 + scroll_y
+    square 280 320 50 : c#fff
+    loc 2 2 35 -410 + scroll_y
+    text "Player 2" 13 : c#000
+    loc 2 2 35 -450 + scroll_y
     text "Slime Type" 10
-    loc 2 2 190 -410 + scroll_y
-    square 300 100 10 : c#fff
+    loc 2 2 190 -520 + scroll_y
+    square 280 80 30 : c#ddd
     change -100
     slime "basic" "walk" player2_type 2
     change 100
     slime "light" "walk" player2_type 2
     change 100
     slime "heavy" "walk" player2_type 2
+    loc 2 2 35 -590 + scroll_y
+    text types.key(player2_type).destr 8 : c#000
+
+    loc 2 2 35 -620 + scroll_y
+    text "Slime Ability" 10
+    loc 2 2 190 -690 + scroll_y
+    square 280 80 30 : c#ddd
+    change -100
+    ability "dash" player2_ability 2
+    change 100
+    ability "heal" player2_ability 2
+    change 100
+    ability "" player2_ability 2
 
     frame "clear"
     loc 999 -2 200 40
@@ -416,7 +473,7 @@ if stage == 0 (
     )
     if page == "level_select" (
       loc -2 -2 -40 40
-      square 30 30 20 : c#000
+      square 30 30 15 : c#000
       square 30 30 10 : c#ddd
       icon "right-arrow" 1 : c#000
       if mouse_touching "cursor pointer"
@@ -427,7 +484,7 @@ if stage == 0 (
     )
     if page == "level_select" (
       loc 2 -2 480 40
-      square 30 30 20 : c#000
+      square 30 30 15 : c#000
       square 30 30 10 : c#ddd
       icon "left-arrow" 1 : c#000
       if mouse_touching "cursor pointer"
@@ -540,18 +597,26 @@ if stage.contains("tree") (
   collide 160 40 380 true
 )
 if stage.contains("mushroom") (
-  c #000
   goto 0 -30
   collide 1000 60 30 false
 
-  goto 350 120
-  collide 100 40 180 true
+  goto -260 80
+  collide 80 40 130 true
 
-  goto -320 195
-  collide 200 40 240 true
+  goto -340 290
+  collide 190 40 350 true
 
-  goto -20 330
-  collide 160 40 380 true
+  goto -160 240
+  collide 110 40 290 true
+
+  goto -60 260
+  collide 110 60 310 true
+
+  goto 30 280
+  collide 110 60 350 true
+  
+  goto 300 380
+  collide 190 40 430 true
 )
 if stage != 0 (
   render_players

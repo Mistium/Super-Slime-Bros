@@ -384,8 +384,12 @@ if ( "down arrow".pressed.not and "up arrow".pressed.not and droppable ) or drop
 endef
 
 def ssb_button "txt,location"
+  change mouse_x - x_position / 40 mouse_y - y_position / 40
   square 360 40 10 : c#fff
-  if clicked "page = location"
+  if clicked and can (
+    can = false
+    page = location
+  )
   m = mouse_touching
   if m "change mouse_x - x_position / 20 mouse_y - y_position / 20"
   if m "square 360 40 20 : c#eee"
@@ -426,10 +430,18 @@ endef
 
 def "main"
 if stage == 0 (
+  if page == "main" (
+    loc -5 -5 mouse_x / 10 mouse_y / 10
+    image github ++ "assets/stages/spike.png" window_width + 700 / 2
+  )
+)
+if stage == 0 (
   loc 2 999 210 0
+  change mouse_x - x_position / 80 mouse_y - y_position / 80
   square 400 window_height - 30 10 : c#ddd
   if page == "main" (
     loc 2 2 30 -50
+    change mouse_x - x_position / 60 mouse_y - y_position / 60
     text "Super Slime Bros" 20 : c#000
 
     loc 2 2 210 -120
@@ -437,21 +449,26 @@ if stage == 0 (
     lvl_page = 1
 
     loc 2 2 210 -180
+    ssb_button "Fullscreen Window" "fullscreen"
+
+    loc 2 2 210 -240
     ssb_button "Quit Game" "quit"
 
-    loc 2 -2 210 210
-    image github ++ "assets/ui/controls.png" 410
-    loc -5 -5 mouse_x / 10 mouse_y / 10
-    image github ++ "assets/stages/spike.png" window_width + 700 / 2
+    loc -2 2 -170 -170
+    change mouse_x - x_position / 50 mouse_y - y_position / 50
+    square 300 300 10 : c#ddd
+    image github ++ "assets/ui/controls.png" 320
   )
   if page == "level_select" (
     loc 2 2 30 -50
+    change mouse_x - x_position / 60 mouse_y - y_position / 60
     text "Level Select" 20 : c#000
 
     loc 2 -2 210 120
     if selected_stage != 0 "ssb_button Play play"
     txt = "Select a stage to play"
     loc 2 -2 40 120
+    change mouse_x - x_position / 40 mouse_y - y_position / 40
     if selected_stage == 0 "text txt 10"
     loc 2 -2 210 60
     ssb_button "Back to Main Menu" "main"
@@ -462,9 +479,11 @@ if stage == 0 (
 
     c #888
     loc 2 2 0 -80
+    change mouse_x - x_position / 50 mouse_y - y_position / 50
     x = x_position
     y = y_position
     loc 2 -2 400 150
+    change mouse_x - x_position / 50 mouse_y - y_position / 50
     frame x y x_position y_position 750
 
     loc 2 2 190 -190 + scroll_y
@@ -572,6 +591,10 @@ if stage == 0 (
     page = 0
     stage = selected_stage
     reset_data
+  )
+  if page == "fullscreen" (
+    window "maximise"
+    page = "main"
   )
   if page == "quit" (
     window "stop"

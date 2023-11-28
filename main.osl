@@ -45,6 +45,14 @@ def "switchability" "type,player"
 endef
 
 def "reset_data"
+  guy1_frm = 0
+  guy1_stretch = 80
+  guy1_direction = 90
+
+  guy2_frm = 0
+  guy2_stretch = -80
+  guy2_direction = 90
+
   // player main data
   player1_x = -100
   player1_y = 50
@@ -137,11 +145,17 @@ def "p1_attack"
     player2_health += 2
     player2_yvel += player2_health + 30 / player2_knockback / 10
     player2_y += 40
+    guy1_frm = [0,7].random
+    guy1_stretch = [80,120].random
+    guy1_direction = [70,110].random
+    guy2_frm = [8,14].random
+    guy2_stretch = [-90,-110].random
+    guy2_direction = [80,100].random
     if player1_dir == "r" "player2_xvel += player2_health + 30 / player2_knockback"
     if player1_dir == "l" "player2_xvel -= player2_health + 30 / player2_knockback"
     zoom = 0.95
+    player2_ifrm = timer
   )
-  player2_ifrm = timer
   pause = timer + 0.1
 endef
 
@@ -156,11 +170,17 @@ def "p2_attack"
     player1_health += 2
     player1_yvel += player1_health + 30 / player1_knockback / 10
     player1_y += 40
+    guy1_frm = [8,14].random
+    guy1_stretch = [90,110].random
+    guy1_direction = [80,100].random
+    guy2_frm = [0,7].random
+    guy2_stretch = [-80,-120].random
+    guy2_direction = [70,110].random
     if player2_dir == "r" "player1_xvel += player1_health + 30 / player1_knockback"
     if player2_dir == "l" "player1_xvel -= player1_health + 30 / player1_knockback"
     zoom = 0.95
+    player1_ifrm = timer
   )
-  player1_ifrm = timer
   pause = timer + 0.1
 endef
 
@@ -567,24 +587,26 @@ if stage != 0 (
   cam_x += cam_x_target - cam_x / 10
   cam_y += cam_y_target - cam_y / 10
 
-  guy1_stretch += guy1_stretch_target - guy1_stretch / 10
+  guy1_stretch += 100 - guy1_stretch / 10
   guy1_direction += 90 - guy1_direction / 10
-  guy2_stretch += guy2_stretch_target - guy2_stretch / 10
+  guy2_stretch += -100 - guy2_stretch / 10
   guy2_direction += -90 - guy2_direction / 10
 
   stage_x = cam_x + shake_x
   stage_y = cam_y + shake_y
 
-  goto stage_x / 10 stage_y / 10
+  goto stage_x / 7 stage_y / 7
+  image github ++ "assets/background.png" window_width * zoom
+
   goto stage_x / 5 - ( window_width / 3 ) stage_y / 5
   direction guy1_direction
   stretch "x" guy1_stretch
-  image github ++ "assets/guy1/" ++ guy1_frm ++ ".png"
+  image github ++ "assets/guy1/" ++ guy1_frm ++ ".png" window_height / 2
 
   goto stage_x / 5 + ( window_width / 3 ) stage_y / 5
   direction guy2_direction
   stretch "x" guy2_stretch
-  image github ++ "assets/guy2/" ++ guy2_frm ++ ".png"
+  image github ++ "assets/guy2/" ++ guy2_frm ++ ".png" window_height / 2
 
   direction 90
   stretch "x" 100

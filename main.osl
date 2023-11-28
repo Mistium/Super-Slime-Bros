@@ -145,10 +145,10 @@ def "p1_attack"
     player2_health += 2
     player2_yvel += player2_health + 30 / player2_knockback / 10
     player2_y += 40
-    guy1_frm = [0,7].random
+    guy1_frm = [0,5].random
     guy1_stretch = [80,120].random
     guy1_direction = [70,110].random
-    guy2_frm = [8,14].random
+    guy2_frm = [4,8].random
     guy2_stretch = [-90,-110].random
     guy2_direction = [80,100].random
     if player1_dir == "r" "player2_xvel += player2_health + 30 / player2_knockback"
@@ -170,10 +170,10 @@ def "p2_attack"
     player1_health += 2
     player1_yvel += player1_health + 30 / player1_knockback / 10
     player1_y += 40
-    guy1_frm = [8,14].random
+    guy1_frm = [4,8].random
     guy1_stretch = [90,110].random
     guy1_direction = [80,100].random
-    guy2_frm = [0,7].random
+    guy2_frm = [0,5].random
     guy2_stretch = [-80,-120].random
     guy2_direction = [70,110].random
     if player2_dir == "r" "player1_xvel += player1_health + 30 / player1_knockback"
@@ -624,12 +624,12 @@ if stage != 0 (
   goto stage_x / 5 - ( window_width / 3 ) stage_y / 5
   direction guy1_direction
   stretch "x" guy1_stretch
-  image github ++ "assets/guy1/" ++ guy1_frm ++ ".png" window_height / 2
+  image github ++ "assets/guy/" ++ guy1_frm ++ ".png" window_height / 2
 
   goto stage_x / 5 + ( window_width / 3 ) stage_y / 5
   direction guy2_direction
   stretch "x" guy2_stretch
-  image github ++ "assets/guy2/" ++ guy2_frm ++ ".png" window_height / 2
+  image github ++ "assets/guy/" ++ guy2_frm ++ ".png" window_height / 2
 
   direction 90
   stretch "x" 100

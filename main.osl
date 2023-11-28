@@ -722,7 +722,13 @@ reset_data
 
 mainloop:
 
-zoom += 1 - zoom / 20
-main
-
+slime = github ++ "assets/basic/idle/1.png"
+image slime 0
+if slime.imageinfo("loaded") (
+  zoom += 1 - zoom / 20
+  main
+) else (
+  loc 2 2 20 -20
+  text "Connecting to internet." 10
+)
 frame "clear"

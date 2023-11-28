@@ -1,36 +1,47 @@
 def "switchslime" "type,player"
-if type == "basic" (
-  out_speed = 4
-  out_knockback = 2
-  out_weight = 1.75
-  out_size = 1
-)
-if type == "heavy" (
-  out_speed = 3
-  out_knockback = 4
-  out_weight = 2
-  out_size = 1.5
-)
-if type == "light" (
-  out_speed = 5
-  out_knockback = 1
-  out_weight = 1.5
-  out_size = 1
-)
-if player == 1 (
-  player1_type = type
-  player1_speed = out_speed
-  player1_knockback = out_knockback
-  player1_gravity = out_weight
-  player1_size = out_size
-)
-if player == 2 (
-  player2_type = type
-  player2_speed = out_speed
-  player2_knockback = out_knockback
-  player2_gravity = out_weight
-  player2_size = out_size
-)
+  if type == "basic" (
+    out_speed = 4
+    out_knockback = 2
+    out_weight = 1.75
+    out_size = 1
+  )
+  if type == "heavy" (
+    out_speed = 3
+    out_knockback = 4
+    out_weight = 2
+    out_size = 1.5
+  )
+  if type == "light" (
+    out_speed = 5
+    out_knockback = 1
+    out_weight = 1.5
+    out_size = 1
+  )
+  if player == 1 (
+    player1_type = type
+    player1_speed = out_speed
+    player1_knockback = out_knockback
+    player1_gravity = out_weight
+    player1_size = out_size
+  )
+  if player == 2 (
+    player2_type = type
+    player2_speed = out_speed
+    player2_knockback = out_knockback
+    player2_gravity = out_weight
+    player2_size = out_size
+  )
+endef
+
+def "switchability" "type,player"
+  if player == 1 (
+    player1_ability = type
+    player1_ability_lastused = 0
+  )
+  if player == 2 (
+    player2_ability = type
+    player2_ability_lastused = 0
+  )
 endef
 
 def "reset_data"
@@ -41,7 +52,6 @@ def "reset_data"
   player1_yvel = 0
   player1_health = 0
   player1_lives = 3
-  player1_dead = false
   player1_ifrm = 0
 
   player2_x = 100
@@ -49,7 +59,7 @@ def "reset_data"
   player2_xvel = 0
   player2_yvel = 0
   player2_health = 0
-  player2_dead = false
+  player2_lives = 3
   player2_ifrm = 0
 
   // player animation variables
@@ -115,7 +125,6 @@ selected_stage = 0
 page = "main"
 
 window_colour = #fff
-zoom = 1
 
 def "p1_idle"
   player1_anim = "idle"
@@ -124,12 +133,13 @@ def "p1_idle"
 endef
 
 def "p1_attack"
-  if timer - player2_ifrm > 0.5 (
+  if timer - player2_ifrm > 0.2 (
     player2_health += 2
     player2_yvel += player2_health + 30 / player2_knockback / 10
     player2_y += 40
     if player1_dir == "r" "player2_xvel += player2_health + 30 / player2_knockback"
     if player1_dir == "l" "player2_xvel -= player2_health + 30 / player2_knockback"
+    zoom = 0.95
   )
   player2_ifrm = timer
   pause = timer + 0.1
@@ -142,12 +152,13 @@ def "p2_idle"
 endef
 
 def "p2_attack"
-  if timer - player1_ifrm > 0.5 (
+  if timer - player1_ifrm > 0.2 (
     player1_health += 2
     player1_yvel += player1_health + 30 / player1_knockback / 10
     player1_y += 40
     if player2_dir == "r" "player1_xvel += player1_health + 30 / player1_knockback"
     if player2_dir == "l" "player1_xvel -= player1_health + 30 / player1_knockback"
+    zoom = 0.95
   )
   player1_ifrm = timer
   pause = timer + 0.1
@@ -274,36 +285,77 @@ def "step"
 endef
 
 def "render_players"
-  goto player1_x + cam_x player1_y + cam_y + 20
-  if player1_type == "heavy" "change_y 25"
+  goto player1_x * zoom + cam_x player1_y * zoom + cam_y + 20
+  if player1_type == "heavy" "change_y 25 * zoom"
   stretch "x" player1_stretch.int
   if timer - player1_ifrm > 0.5 or ( player1_frame.round % 2 == 0 ) (
-    image github ++ "assets/" ++ player1_type ++ "/" ++ player1_anim ++ "/" ++ player1_frame.round ++ ".png" 200 * player1_size
+    image github ++ "assets/" ++ player1_type ++ "/" ++ player1_anim ++ "/" ++ player1_frame.round ++ ".png" 200 * player1_size * zoom
   )
-  change 0 60
-  square 20 20 10 : c#8a3d34
-  text "1" 10 : c#fff chx#-5
-  goto player2_x + cam_x player2_y + cam_y + 20
-  if player2_type == "heavy" "change_y 25"
+  change_y 60 * zoom
+  square 20 * zoom 20 * zoom 10 * zoom : c#8a3d34
+  change -5 * zoom
+  text "1" 10 * zoom : c#fff
+  goto player2_x * zoom + cam_x player2_y * zoom + cam_y + 20
+  if player2_type == "heavy" "change_y 25 * zoom"
   stretch "x" player2_stretch.int
   if timer - player2_ifrm > 0.5 or ( player2_frame.round % 2 == 0 ) (
-    image github ++ "assets/" ++ player2_type ++ "/" ++ player2_anim ++ "/" ++ player2_frame.round ++ ".png" 200 * player2_size
+    image github ++ "assets/" ++ player2_type ++ "/" ++ player2_anim ++ "/" ++ player2_frame.round ++ ".png" 200 * player2_size * zoom
   )
-  change 0 60
-  square 20 20 10 : c#345b8a
-  text "2" 10 : c#fff chx#-5
+  change_y 60 * zoom
+  square 20 * zoom 20 * zoom 10 * zoom : c#345b8a
+  change -5 * zoom
+  text "2" 10 * zoom : c#fff
+endef
+
+def "render_ui"
+  loc 999 -2 -90 35
+  square 150 50 20 : c#000
+  square 150 50 10 : c#8a3d34
+  loc 999 -2 90 35
+  square 150 50 20 : c#000
+  square 150 50 10 : c#345b8a
+  loc 999 -2 90 100
+  square 150 30 10 : c#ddd
+  loc 999 -2 -90 100
+  square 150 30 10 : c#ddd
+
+  c #fff
+  loc 999 -2 -160 35
+  text "1: <player1_health>%" 15
+  loc 999 -2 20 35
+  text "2: <player2_health>%" 15
+  loc 999 -2 -140 110
+  stretch "x" 100
+  loop player1_lives (
+    image github ++ "assets/" ++ player1_type ++ "/idle/1.png" 100
+    change 50
+  )
+  loc 999 -2 40 110
+  stretch "x" -100
+  loop player2_lives (
+    image github ++ "assets/" ++ player2_type ++ "/idle/1.png" 100
+    change 50
+  )
+  loc 2 2 25 -25
+  square 30 30 15 : c#277564
+  icon "home" 1 : c#fff
+  if mouse_touching "cursor pointer"
+  if clicked (
+    stage = 0
+    page = "main"
+  )
 endef
 
 def "collide" "width,height,reset,droppable"
 c #000
-hitbox width * zoom height * zoom player1_x player1_y - 50
+hitbox width height player1_x player1_y - 50
 if ( "s".pressed.not and "w".pressed.not and droppable ) or droppable.not and collided (
   player1_grounded = true
   player1_y = reset
   player1_yvel = 0
 )
 
-hitbox width * zoom height * zoom player2_x player2_y - 50
+hitbox width height player2_x player2_y - 50
 if ( "down arrow".pressed.not and "up arrow".pressed.not and droppable ) or droppable.not and collided (
   player2_grounded = true
   player2_y = reset
@@ -370,9 +422,7 @@ if stage == 0 (
     loc 2 -2 210 210
     image github ++ "assets/ui/controls.png" 410
     loc -5 -5 mouse_x / 10 mouse_y / 10
-    hzoom = zoom / 2
-    image github ++ "assets/stages/spike.png" window_width + 700 * hzoom
-
+    image github ++ "assets/stages/spike.png" window_width + 700 / 2
   )
   if page == "level_select" (
     loc 2 2 30 -50
@@ -398,13 +448,14 @@ if stage == 0 (
     frame x y x_position y_position 750
 
     loc 2 2 190 -190 + scroll_y
-    square 280 320 50 : c#fff
+    square 280 320 50 : c#8a3d34
+    square 280 320 40 : c#fff
     loc 2 2 35 -30 + scroll_y
     text "Player 1" 13 : c#000
     loc 2 2 35 -70 + scroll_y
     text "Slime Type" 10
     loc 2 2 190 -140 + scroll_y
-    square 280 80 30 : c#ddd
+    square 280 80 25 : c#ddd
     change -100
     slime "basic" "walk" player1_type 1
     change 100
@@ -417,7 +468,7 @@ if stage == 0 (
     loc 2 2 35 -240 + scroll_y
     text "Slime Ability" 10
     loc 2 2 190 -310 + scroll_y
-    square 280 80 30 : c#ddd
+    square 280 80 25 : c#ddd
     change -100
     ability "dash" player1_ability 1
     change 100
@@ -426,13 +477,14 @@ if stage == 0 (
     ability "" player1_ability 1
 
     loc 2 2 190 -570 + scroll_y
-    square 280 320 50 : c#fff
+    square 280 320 50 : c#345b8a
+    square 280 320 40 : c#fff
     loc 2 2 35 -410 + scroll_y
     text "Player 2" 13 : c#000
     loc 2 2 35 -450 + scroll_y
     text "Slime Type" 10
     loc 2 2 190 -520 + scroll_y
-    square 280 80 30 : c#ddd
+    square 280 80 25 : c#ddd
     change -100
     slime "basic" "walk" player2_type 2
     change 100
@@ -445,7 +497,7 @@ if stage == 0 (
     loc 2 2 35 -620 + scroll_y
     text "Slime Ability" 10
     loc 2 2 190 -690 + scroll_y
-    square 280 80 30 : c#ddd
+    square 280 80 25 : c#ddd
     change -100
     ability "dash" player2_ability 2
     change 100
@@ -527,45 +579,25 @@ if stage != 0 (
 
   step
 
-  if player1_y < -1000 (
-    player1_deadtime = timer
-    player2_dead = true
-  )
-  if player2_y < -1000 (
-    player2_deadtime = timer
-    player2_dead = true
-  )
-  if timer - player1_deadtime > 5 and player1_dead (
+  if player1_y < -2000 (
     player1_x = 0
     player1_y = 500
     player1_xvel = 0
     player1_yvel = 0
     player1_lives -= 1
+    player1_ifrm = timer + 3
+    player1_health /= 2
+    zoom = 0.8
   )
-  if timer - player2_deadtime > 5 and player2_dead (
+  if player2_y < -2000 (
     player2_x = 0
     player2_y = 500
     player2_xvel = 0
     player2_yvel = 0
     player2_lives -= 1
-  )
-)
-if stage != 0 (
-  c #ddd
-  loc 2 -2 80 50
-  square 150 50 10 1
-  c #000
-  loc 2 -2 20 50
-  text "<player1_health>%" 15
-  loc 2 -2 110 50
-  text "<player2_health>%" 15
-  loc 2 2 35 -35
-  square 30 30 15 : c#000
-  square 30 30 10 : c#ddd
-  icon "home" 1 : c#000
-  if clicked (
-    stage = 0
-    page = "main"
+    player2_ifrm = timer + 3
+    player2_health /= 2
+    zoom = 0.8
   )
 )
 if stage.contains("spike") (
@@ -620,6 +652,7 @@ if stage.contains("mushroom") (
 )
 if stage != 0 (
   render_players
+  render_ui
 )
 if mouse_down.not "can = true"
 endef
@@ -628,6 +661,7 @@ reset_data
 
 mainloop:
 
+zoom += 1 - zoom / 20
 main
 
 frame "clear"

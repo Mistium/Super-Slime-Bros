@@ -513,7 +513,7 @@ if stage == 0 (
     change 100
     ability "heal" player1_ability 1
     change 100
-    ability "" player1_ability 1
+    ability "double_jump" player1_ability 1
 
     loc 2 2 190 -570 + scroll_y
     square 280 320 50 : c#345b8a
@@ -542,7 +542,7 @@ if stage == 0 (
     change 100
     ability "heal" player2_ability 2
     change 100
-    ability "" player2_ability 2
+    ability "double_jump" player2_ability 2
 
     frame "clear"
     loc 999 -2 200 40
@@ -550,15 +550,15 @@ if stage == 0 (
     loc 999 999 220 30
     frame_width = window_width - 450
     tot_lvls = 3
-    if lvl_page == 1 and ( stage == 0 ) (
+    if lvl_page == 1 and ( page == "level_select" ) (
       level github ++ "assets/stages/spike.png"
       current_level_view = "Spike"
     )
-    if lvl_page == 2 and ( stage == 0 ) (
+    if lvl_page == 2 and ( page == "level_select" ) (
       level github ++ "assets/stages/tree.png"
       current_level_view = "Tree"
     )
-    if lvl_page == 3 and ( stage == 0 ) (
+    if lvl_page == 3 and ( page == "level_select" ) (
       level github ++ "assets/stages/mushroom.png"
       current_level_view = "Mushroom"
     )
@@ -613,7 +613,7 @@ if stage != 0 (
   guy1_stretch += 100 - guy1_stretch / 10
   guy1_direction += 90 - guy1_direction / 10
   guy2_stretch += -100 - guy2_stretch / 10
-  guy2_direction += -90 - guy2_direction / 10
+  guy2_direction += 90 - guy2_direction / 10
 
   stage_x = cam_x + shake_x
   stage_y = cam_y + shake_y
@@ -624,12 +624,12 @@ if stage != 0 (
   goto stage_x / 5 - ( window_width / 3 ) stage_y / 5
   direction guy1_direction
   stretch "x" guy1_stretch
-  image github ++ "assets/guy/" ++ guy1_frm ++ ".png" window_height / 2
+  image github ++ "assets/guy/" ++ guy1_frm ++ ".png" window_width / 2
 
   goto stage_x / 5 + ( window_width / 3 ) stage_y / 5
   direction guy2_direction
   stretch "x" guy2_stretch
-  image github ++ "assets/guy/" ++ guy2_frm ++ ".png" window_height / 2
+  image github ++ "assets/guy/" ++ guy2_frm ++ ".png" window_width / 2
 
   direction 90
   stretch "x" 100
@@ -721,14 +721,6 @@ endef
 reset_data
 
 mainloop:
-
-slime = github ++ "assets/basic/idle/1.png"
-image slime 0
-if slime.imageinfo("loaded") (
-  zoom += 1 - zoom / 20
-  main
-) else (
-  loc 2 2 20 -20
-  text "Connecting to internet." 10
-)
+zoom += 1 - zoom / 20
+main
 frame "clear"

@@ -1,5 +1,5 @@
 github = "https://raw.githubusercontent.com/Mistium/Super-Slime-Bros/main/"
-seticon "image" + github ++ "assets/icon.png 20"
+seticon "image https://raw.githubusercontent.com/Mistium/Super-Slime-Bros/main/assets/icon.png 20"
 
 def "switchslime" "type,player"
   if type == "basic" (
@@ -421,7 +421,7 @@ def "ability" "type,selected,p"
   if selected == type "square 80 80 15 : c#000"
   square 80 80 10 : c#eee
   if clicked "switchability type p"
-  image github ++ "assets/abilities/" ++ type ++ ".png" 130
+  image github ++ "assets/abilities/" ++ type ++ ".png" 80
 endef
 
 def "screenshake" "x_mag,y_mag"

@@ -1,3 +1,6 @@
+github = "https://raw.githubusercontent.com/Mistium/Super-Slime-Bros/main/"
+seticon "image" + github ++ "assets/icon.png 20"
+
 def "switchslime" "type,player"
   if type == "basic" (
     out_speed = 4
@@ -125,8 +128,6 @@ switchslime "basic" 2
 
 window "dimensions" 1200 700
 window "show"
-
-github = "https://raw.githubusercontent.com/Mistium/Super-Slime-Bros/main/"
 
 stage = 0
 selected_stage = 0

@@ -476,7 +476,7 @@ if stage == 0 (
 
     if timer - 0.15 > curlast "curframe += 1"
     if timer - 0.15 > curlast "curlast = timer"
-     if curframe > 6 "curframe = 1"
+    if curframe > 6 "curframe = 1"
 
     c #888
     loc 2 2 0 -80
@@ -563,7 +563,6 @@ if stage == 0 (
       level github ++ "assets/stages/mushroom.png"
       current_level_view = "Mushroom"
     )
-    if page == "level_select" (
       loc -2 -2 -40 40
       square 30 30 15 : c#000
       square 30 30 10 : c#ddd
@@ -573,8 +572,6 @@ if stage == 0 (
         can = false
         lvl_page += 1
       )
-    )
-    if page == "level_select" (
       loc 2 -2 480 40
       square 30 30 15 : c#000
       square 30 30 10 : c#ddd

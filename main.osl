@@ -189,112 +189,6 @@ def "attack" "player,attack_type"
   )
 endef
 
-def "step"
-
-  if player1_anim != "idle" and ( player1_anim != "attack1" ) and "d".pressed.not and "a".pressed.not or ( player1_anim == "attack1" and ( player1_frame == 1 ) ) (
-    player1_anim = "idle"
-    player1_frame = 1
-    player1_endfrm = 3
-  )
-  if ["walk","attack1"].contains(player1_anim).not and ( "d".pressed or "a".pressed ) (
-    player1_anim = "walk"
-    player1_frame = 1
-    player1_endfrm = 6
-  )
-  if player1_anim != "attack1" and "space".pressed (
-    player1_anim = "attack1"
-    player1_frame = 1
-    player1_endfrm = 7
-  )
-
-  if player2_anim != "idle" and ( player2_anim != "attack1" ) and "right arrow".pressed.not and "left arrow".pressed.not or ( player2_anim == "attack1" and ( player2_frame == 1 ) ) (
-    player2_anim = "idle"
-    player2_frame = 1
-    player2_endfrm = 3
-  )
-  if ["walk","attack1"].contains(player2_anim).not and ( "right arrow".pressed or "left arrow".pressed ) (
-    player2_anim = "walk"
-    player2_frame = 1
-    player2_endfrm = 6
-  )
-  if player2_anim != "attack1" and "enter".pressed (
-    player2_anim = "attack1"
-    player2_frame = 1
-    player2_endfrm = 7
-  )
-
-  player1_target = -100
-  if player1_dir == "r" "player1_target = 100"
-
-  player2_target = -100
-  if player2_dir == "r" "player2_target = 100"
-
-  // increase speed while on ground
-  player1_speedmod = player1_speed
-  if player1_grounded "player1_speedmod += 2"
-
-  player2_speedmod = player2_speed
-  if player2_grounded "player2_speedmod += 2"
-
-  if "d".pressed (
-    player1_xvel += player1_speedmod
-    player1_dir = "r"
-  )
-  if "a".pressed (
-    player1_xvel -= player1_speedmod
-    player1_dir = "l"
-  )
-  if "w".pressed and player1_grounded (
-    player1_yvel = 30
-    player1_grounded = false
-    player1_stretch *= 0.3
-    player1_target *= 0.1
-  )
-
-  if "right arrow".pressed (
-    player2_xvel += player2_speedmod
-    player2_dir = "r"
-  )
-  if "left arrow".pressed (
-    player2_xvel -= player2_speedmod
-    player2_dir = "l"
-  )
-  if "up arrow".pressed and player2_grounded (
-    player2_yvel = 30
-    player2_grounded = false
-    player2_stretch *= 0.3
-    player2_target *= 0.1
-  )
-
-  player1_yvel -= player1_gravity
-  player1_xvel *= 0.8
-  player2_yvel -= player2_gravity
-  player2_xvel *= 0.8
-
-  player1_x += player1_xvel
-  player1_y += player1_yvel
-  player2_x += player2_xvel
-  player2_y += player2_yvel
-
-  player1_stretch += player1_target - player1_stretch / 4
-  player2_stretch += player2_target - player2_stretch / 4
-
-  if timer - 0.15 > p1_lst (
-    player1_frame += 1
-    p1_lst = timer
-  )
-  if timer - 0.15 > p2_lst (
-    player2_frame += 1
-    p2_lst = timer
-  )
-
-  if player1_frame > player1_endfrm "player1_frame = 1"
-  if player2_frame > player2_endfrm "player2_frame = 1"
-
-  if player1_anim == "attack1" "attack 1 1"
-  if player2_anim == "attack1" "attack 2 1"
-endef
-
 def "render_players"
   z = 20 * zoom
   goto player1_x * zoom + cam_x player1_y * zoom + cam_y + 20
@@ -327,9 +221,9 @@ def "render_ui"
   square 150 50 20 : c#000
   square 150 50 10 : c#345b8a
   loc 999 -2 90 100
-  square 150 30 10 : c#ddd
+  square 150 30 10 : c#333
   loc 999 -2 -90 100
-  square 150 30 10 : c#ddd
+  square 150 30 10 : c#333
 
   c #fff
   loc 999 -2 -160 35
@@ -338,18 +232,12 @@ def "render_ui"
   loc 999 -2 20 35
   text "2: <player2_health>%" 15
 
-  loc 999 -2 -140 110
-  stretch "x" 100
-  loop player1_lives (
-    image github ++ "assets/" ++ player1_type ++ "/idle/1.png" 100
-    change 50
-  )
-  loc 999 -2 40 110
-  stretch "x" -100
-  loop player2_lives (
-    image github ++ "assets/" ++ player2_type ++ "/idle/1.png" 100
-    change 50
-  )
+  loc 999 -2 -150 100
+  text "<player1_lives> Lives Left" 10
+
+  loc 999 -2 30 100
+  text "<player2_lives> Lives Left" 10
+
   loc 2 2 25 -25
   square 30 30 15 : c#277564
   icon "home" 1 : c#fff
@@ -589,6 +477,8 @@ def "main"
     window "stop"
   )
   if stage != 0 (
+    p1_upordown = "s".pressed.not and "w".pressed.not
+    p2_upordown = "down arrow".pressed.not and "up arrow".pressed.not
     cam_x_target = player1_x + player2_x / -2
     cam_y_target = player1_y + player2_y / -2
     shake_x += shake_x_mag
@@ -626,7 +516,108 @@ def "main"
     if stage.contains("mushroom") "change_y 105"
     image stage 1000 * zoom
 
-    step
+    if player1_anim != "idle" and ( player1_anim != "attack1" ) and "d".pressed.not and "a".pressed.not or ( player1_anim == "attack1" and ( player1_frame == 1 ) ) (
+      player1_anim = "idle"
+      player1_frame = 1
+      player1_endfrm = 3
+    )
+    if ["walk","attack1"].contains(player1_anim).not and ( "d".pressed or "a".pressed ) (
+      player1_anim = "walk"
+      player1_frame = 1
+      player1_endfrm = 6
+    )
+    if player1_anim != "attack1" and "space".pressed (
+      player1_anim = "attack1"
+      player1_frame = 1
+      player1_endfrm = 7
+    )
+
+    if player2_anim != "idle" and ( player2_anim != "attack1" ) and "right arrow".pressed.not and "left arrow".pressed.not or ( player2_anim == "attack1" and ( player2_frame == 1 ) ) (
+      player2_anim = "idle"
+      player2_frame = 1
+      player2_endfrm = 3
+    )
+    if ["walk","attack1"].contains(player2_anim).not and ( "right arrow".pressed or "left arrow".pressed ) (
+      player2_anim = "walk"
+      player2_frame = 1
+      player2_endfrm = 6
+    )
+    if player2_anim != "attack1" and "enter".pressed (
+      player2_anim = "attack1"
+      player2_frame = 1
+      player2_endfrm = 7
+    )
+
+    player1_target = -100
+    if player1_dir == "r" "player1_target = 100"
+
+    player2_target = -100
+    if player2_dir == "r" "player2_target = 100"
+
+    // increase speed while on ground
+    player1_speedmod = player1_speed
+    if player1_grounded "player1_speedmod += 2"
+
+    player2_speedmod = player2_speed
+    if player2_grounded "player2_speedmod += 2"
+
+    if "d".pressed (
+      player1_xvel += player1_speedmod
+      player1_dir = "r"
+    )
+    if "a".pressed (
+      player1_xvel -= player1_speedmod
+      player1_dir = "l"
+    )
+    if "w".pressed and player1_grounded (
+      player1_yvel = 30
+      player1_grounded = false
+      player1_stretch *= 0.3
+      player1_target *= 0.1
+    )
+  
+    if "right arrow".pressed (
+      player2_xvel += player2_speedmod
+      player2_dir = "r"
+    )
+    if "left arrow".pressed (
+      player2_xvel -= player2_speedmod
+      player2_dir = "l"
+    )
+    if "up arrow".pressed and player2_grounded (
+      player2_yvel = 30
+      player2_grounded = false
+      player2_stretch *= 0.3
+      player2_target *= 0.1
+    )
+
+    player1_yvel -= player1_gravity
+    player1_xvel *= 0.8
+    player2_yvel -= player2_gravity
+    player2_xvel *= 0.8
+
+    player1_x += player1_xvel
+    player1_y += player1_yvel
+    player2_x += player2_xvel
+    player2_y += player2_yvel
+
+    player1_stretch += player1_target - player1_stretch / 4
+    player2_stretch += player2_target - player2_stretch / 4
+
+    if timer - 0.15 > p1_lst (
+      player1_frame += 1
+      p1_lst = timer
+    )
+    if timer - 0.15 > p2_lst (
+      player2_frame += 1
+      p2_lst = timer
+    )
+
+    if player1_frame > player1_endfrm "player1_frame = 1"
+    if player2_frame > player2_endfrm "player2_frame = 1"
+
+    if player1_anim == "attack1" "attack 1 1"
+    if player2_anim == "attack1" "attack 2 1"
 
     if player1_y < -2000 (
       player1_x = 0
@@ -635,7 +626,7 @@ def "main"
       player1_yvel = 0
       player1_lives -= 1
       player1_ifrm = timer + 3
-      player1_health /= 2
+      player1_health = 0
       zoom = 0.8
     )
     if player2_y < -2000 (
@@ -645,12 +636,11 @@ def "main"
       player2_yvel = 0
       player2_lives -= 1
       player2_ifrm = timer + 3
-      player2_health /= 2
+      player2_health = 0
       zoom = 0.8
     )
   )
   if stage.contains("spike") (
-    c #000
     goto 0 -30
     collide 1000 60 30 false
 
@@ -664,7 +654,6 @@ def "main"
     collide 160 40 380 true
   )
   if stage.contains("tree") (
-    c #000
     goto 0 -30
     collide 1000 60 30 false
 
@@ -710,7 +699,5 @@ reset_data
 
 mainloop:
 zoom += 1 - zoom / 20
-p1_upordown = "s".pressed.not and "w".pressed.not
-p2_upordown = "down arrow".pressed.not and "up arrow".pressed.not
 main
 frame "clear"

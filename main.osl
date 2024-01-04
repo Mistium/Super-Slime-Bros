@@ -1,6 +1,8 @@
 github = "https://raw.githubusercontent.com/Mistium/Super-Slime-Bros/main/"
 seticon "image https://raw.githubusercontent.com/Mistium/Super-Slime-Bros/main/assets/icon.png 20"
 
+window "maximise"
+
 def "switchslime" "type,player"
   if type == "basic" (
     out_speed = 4
@@ -26,8 +28,7 @@ def "switchslime" "type,player"
     player1_knockback = out_knockback
     player1_gravity = out_weight
     player1_size = out_size
-  )
-  if player == 2 (
+  ) else
     player2_type = type
     player2_speed = out_speed
     player2_knockback = out_knockback
@@ -40,8 +41,7 @@ def "switchability" "type,player"
   if player == 1 (
     player1_ability = type
     player1_ability_lastused = 0
-  )
-  if player == 2 (
+  ) else (
     player2_ability = type
     player2_ability_lastused = 0
   )
@@ -225,9 +225,8 @@ def "render_ui"
   loc 999 -2 -90 100
   square 150 30 10 : c#333
 
-  c #fff
   loc 999 -2 -160 35
-  text "1: <player1_health>%" 15
+  text "1: <player1_health>%" 15 c#fff
 
   loc 999 -2 20 35
   text "2: <player2_health>%" 15
@@ -251,14 +250,14 @@ endef
 def "collide" "width,height,reset,droppable"
   c #000
   hitbox width height player1_x player1_y - 50
-  if ( p1_upordown and droppable ) or droppable.not and collided (
+  if p1_upordown and droppable or droppable.not and collided (
     player1_grounded = true
     player1_y = reset
     player1_yvel = 0
   )
 
   hitbox width height player2_x player2_y - 50
-  if ( p2_upordown and droppable ) or droppable.not and collided (
+  if p2_upordown and droppable or droppable.not and collided (
     player2_grounded = true
     player2_y = reset
     player2_yvel = 0
@@ -268,13 +267,15 @@ endef
 def ssb_button "txt,location"
   change mouse_x - x_position / 40 mouse_y - y_position / 40
   square 360 40 10 : c#fff
-  if clicked and can (
-    can = false
-    page = location
-  )
   m = mouse_touching
-  if m "change mouse_x - x_position / 20 mouse_y - y_position / 20"
-  if m "square 360 40 20 : c#eee"
+  if m (
+    if clicked and can (
+      can = false
+      page = location
+    )
+    change mouse_x - x_position / 20 mouse_y - y_position / 20
+    square 360 40 20 : c#eee
+  )
   change -170
   text txt 10 : c#000
 endef
@@ -369,60 +370,48 @@ def "main"
       loc 2 2 190 -190 + scroll_y
       square 280 320 50 : c#8a3d34
       square 280 320 40 : c#fff
-      loc 2 2 35 -30 + scroll_y
+      change -155 160
       text "Player 1" 13 : c#000
       loc 2 2 35 -70 + scroll_y
       text "Slime Type" 10
       loc 2 2 190 -140 + scroll_y
       square 280 80 25 : c#ddd
-      change -100
-      slime "basic" "walk" player1_type 1
-      change 100
-      slime "light" "walk" player1_type 1
-      change 100
-      slime "heavy" "walk" player1_type 1
+      slime "basic" "walk" player1_type 1 : chx#-100
+      slime "light" "walk" player1_type 1 : chx#100
+      slime "heavy" "walk" player1_type 1 : chx#100
       loc 2 2 35 -210 + scroll_y
-      text types.key(player1_type).destr 8 : c#000
+      text types.key(player1_type) 8 : c#000
 
       loc 2 2 35 -240 + scroll_y
       text "Slime Ability" 10
       loc 2 2 190 -310 + scroll_y
       square 280 80 25 : c#ddd
-      change -100
-      ability "dash" player1_ability 1
-      change 100
-      ability "heal" player1_ability 1
-      change 100
-      ability "double_jump" player1_ability 1
+      ability "dash" player1_ability 1 : chx#-100
+      ability "heal" player1_ability 1 : chx#100
+      ability "double_jump" player1_ability 1 : chx#100
 
       loc 2 2 190 -570 + scroll_y
       square 280 320 50 : c#345b8a
       square 280 320 40 : c#fff
-      loc 2 2 35 -410 + scroll_y
+      change -155 160
       text "Player 2" 13 : c#000
       loc 2 2 35 -450 + scroll_y
       text "Slime Type" 10
       loc 2 2 190 -520 + scroll_y
       square 280 80 25 : c#ddd
-      change -100
-      slime "basic" "walk" player2_type 2
-      change 100
-      slime "light" "walk" player2_type 2
-      change 100
-      slime "heavy" "walk" player2_type 2
+      slime "basic" "walk" player2_type 2 : chx#-100
+      slime "light" "walk" player2_type 2 : chx#100
+      slime "heavy" "walk" player2_type 2 : chx#100
       loc 2 2 35 -590 + scroll_y
-      text types.key(player2_type).destr 8 : c#000
+      text types.key(player2_type) 8 : c#000
 
       loc 2 2 35 -620 + scroll_y
       text "Slime Ability" 10
       loc 2 2 190 -690 + scroll_y
       square 280 80 25 : c#ddd
-      change -100
-      ability "dash" player2_ability 2
-      change 100
-      ability "heal" player2_ability 2
-      change 100
-      ability "double_jump" player2_ability 2
+      ability "dash" player2_ability 2 : chx#-100
+      ability "heal" player2_ability 2 : chx#100
+      ability "double_jump" player2_ability 2 : chx#100
 
       frame "clear"
       loc 999 -2 200 40
@@ -516,15 +505,18 @@ def "main"
     if stage.contains("mushroom") "change_y 105"
     image stage 1000 * zoom
 
-    if player1_anim != "idle" and ( player1_anim != "attack1" ) and "d".pressed.not and "a".pressed.not or ( player1_anim == "attack1" and ( player1_frame == 1 ) ) (
-      player1_anim = "idle"
-      player1_frame = 1
-      player1_endfrm = 3
-    )
-    if ["walk","attack1"].contains(player1_anim).not and ( "d".pressed or "a".pressed ) (
+    not_attack_1 = player1_anim != "attack1"
+
+    if player1_anim != "walk" and not_attack_1 and ( "d".pressed or "a".pressed ) (
       player1_anim = "walk"
       player1_frame = 1
       player1_endfrm = 6
+    ) else (
+      if player1_anim != "idle" and not_attack_1 or ( player1_anim == "attack1" and ( player1_frame == 1 ) ) (
+        player1_anim = "idle"
+        player1_frame = 1
+        player1_endfrm = 3
+      )
     )
     if player1_anim != "attack1" and "space".pressed (
       player1_anim = "attack1"
@@ -532,15 +524,18 @@ def "main"
       player1_endfrm = 7
     )
 
-    if player2_anim != "idle" and ( player2_anim != "attack1" ) and "right arrow".pressed.not and "left arrow".pressed.not or ( player2_anim == "attack1" and ( player2_frame == 1 ) ) (
-      player2_anim = "idle"
-      player2_frame = 1
-      player2_endfrm = 3
-    )
-    if ["walk","attack1"].contains(player2_anim).not and ( "right arrow".pressed or "left arrow".pressed ) (
+  not_attack_2 = player2_anim != "attack1"
+
+   if player2_anim != "walk" and not_attack_2 and ( "right arrow".pressed or "left arrow".pressed ) (
       player2_anim = "walk"
       player2_frame = 1
       player2_endfrm = 6
+    ) else (
+      if player2_anim != "idle" and not_attack_2 or ( player2_anim == "attack1" and ( player2_frame == 1 ) ) (
+        player2_anim = "idle"
+        player2_frame = 1
+        player2_endfrm = 3
+      )
     )
     if player2_anim != "attack1" and "enter".pressed (
       player2_anim = "attack1"
@@ -593,11 +588,11 @@ def "main"
 
     player1_yvel -= player1_gravity
     player1_xvel *= 0.8
-    player2_yvel -= player2_gravity
-    player2_xvel *= 0.8
-
     player1_x += player1_xvel
     player1_y += player1_yvel
+
+    player2_yvel -= player2_gravity
+    player2_xvel *= 0.8
     player2_x += player2_xvel
     player2_y += player2_yvel
 
@@ -640,51 +635,40 @@ def "main"
       zoom = 0.8
     )
   )
-  if stage.contains("spike") (
+  log stage
+  if stage == "spike" (
     goto 0 -30
     collide 1000 60 30 false
-
     goto 250 165
     collide 200 40 210 true
-
     goto -320 195
     collide 200 40 240 true
-
     goto -20 330
     collide 160 40 380 true
   )
-  if stage.contains("tree") (
+  if stage == "tree" (
     goto 0 -30
     collide 1000 60 30 false
-
     goto 350 120
     collide 100 40 180 true
-
     goto -320 195
     collide 200 40 240 true
-
     goto -20 330
     collide 160 40 380 true
   )
-  if stage.contains("mushroom") (
+  if stage == "mushroom" (
     goto 0 -30
     collide 1000 60 30 false
-
     goto -260 80
     collide 80 40 130 true
-
     goto -340 290
     collide 190 40 350 true
-
     goto -160 240
     collide 110 40 290 true
-
     goto -60 260
     collide 110 60 310 true
-
     goto 30 280
     collide 110 60 350 true
-  
     goto 300 380
     collide 190 40 430 true
   )
@@ -701,3 +685,6 @@ mainloop:
 zoom += 1 - zoom / 20
 main
 frame "clear"
+
+loc -2 -2 -40 20
+text fps 10 : c#000

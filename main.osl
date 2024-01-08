@@ -113,10 +113,7 @@ endef
 
 main_image = [0,3].random
 
-types = {}
-types.key("basic") = "The Basic Slime :/"
-types.key("heavy") = "Slower, heavier, less knockback"
-types.key("light") = "Faster, lighter, more knockback"
+types = {"basic":"The Basic Slime :/","heavy":"Slower, heavier, less knockback","light":"Faster, lighter, more knockback"}
 
 curlast = 0
 curframe = 0
@@ -172,18 +169,22 @@ endef
 
 def "attack" "player,attack_type"
   if player == 1 and ( attack_type == 1 ) (
-    goto player1_x player1_y
-    change -40 player1_xvel
-    if player1_dir == "r" "change 80"
-    hitbox 200 150 player2_x player2_y
-    if collided "p1_attack"
+    if timer - player1_ifrm > 0.5 (
+      goto player1_x player1_y
+      change -40 player1_xvel
+      if player1_dir == "r" "change 80"
+      hitbox 200 150 player2_x player2_y
+      if collided "p1_attack"
+    )
   )
   if player == 2 and ( attack_type == 1 ) (
-    goto player2_x player2_y
-    change -40 player2_vel
-    if player2_dir == "r" "change 80"
-    hitbox 200 150 player1_x player1_y
-    if collided "p2_attack"
+    if timer - player2_ifrm > 0.5 (
+      goto player2_x player2_y
+      change -40 player2_vel
+      if player2_dir == "r" "change 80"
+      hitbox 200 150 player1_x player1_y
+      if collided "p2_attack"
+    )
   )
 endef
 
@@ -192,9 +193,7 @@ def "render_players"
   goto player1_x * zoom + cam_x player1_y * zoom + cam_y + 20
   if player1_type == "heavy" "change_y 25 * zoom"
   stretch "x" player1_stretch.int
-  if timer - player1_ifrm > 0.5 or ( player1_frame.round % 2 == 0 ) (
-    image github ++ "assets/" ++ player1_type ++ "/" ++ player1_anim ++ "/" ++ player1_frame.round ++ ".png" 200 * player1_size * zoom
-  )
+  image github ++ "assets/" ++ player1_type ++ "/" ++ player1_anim ++ "/" ++ player1_frame.round ++ ".png" 200 * player1_size * zoom
   change_y 60 * zoom
   square z z 10 * zoom : c#8a3d34
   change_x -5 * zoom
@@ -202,9 +201,7 @@ def "render_players"
   goto player2_x * zoom + cam_x player2_y * zoom + cam_y + 20
   if player2_type == "heavy" "change_y 25 * zoom"
   stretch "x" player2_stretch.int
-  if timer - player2_ifrm > 0.5 or ( player2_frame.round % 2 == 0 ) (
-    image github ++ "assets/" ++ player2_type ++ "/" ++ player2_anim ++ "/" ++ player2_frame.round ++ ".png" 200 * player2_size * zoom
-  )
+  image github ++ "assets/" ++ player2_type ++ "/" ++ player2_anim ++ "/" ++ player2_frame.round ++ ".png" 200 * player2_size * zoom
   change_y 60 * zoom
   square z z 10 * zoom : c#345b8a
   change_x -5 * zoom
@@ -262,7 +259,7 @@ def "collide" "width,height,reset,droppable"
   )
 endef
 
-def ssb_button "txt,location"
+def "ssb_button" "txt,location"
   change mouse_x - x_position / 40 mouse_y - y_position / 40
   square 360 40 10 : c#fff
   m = mouse_touching
@@ -551,9 +548,15 @@ def "main"
     // increase speed while on ground
     player1_speedmod = player1_speed
     if player1_grounded "player1_speedmod += 2"
+    if timer - player1_ifrm < 0.5 (
+      player1_speedmod /= 4
+    )
 
     player2_speedmod = player2_speed
     if player2_grounded "player2_speedmod += 2"
+    if timer - player2_ifrm < 0.5 (
+      player2_speedmod /= 4
+    )
 
     if "d".pressed (
       player1_xvel += player1_speedmod
@@ -645,8 +648,7 @@ def "main"
       player2_health = 0
       zoom = 0.8
     )
-  )
-  if stage != 0 (
+
     if stage_name == "spike" (
       goto 0 -30
       collide 1000 60 30 false
@@ -696,5 +698,5 @@ zoom += 1 - zoom / 20
 main
 frame "clear"
 
-loc -2 -2 -40 20
-text fps 10 : c#000
+loc -2 -2 -80 20
+text fps + "fps" 10 : c#000

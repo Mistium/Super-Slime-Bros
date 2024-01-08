@@ -1,8 +1,6 @@
 github = "https://raw.githubusercontent.com/Mistium/Super-Slime-Bros/main/"
 seticon "image https://raw.githubusercontent.com/Mistium/Super-Slime-Bros/main/assets/icon.png 20"
 
-window "maximise"
-
 def "switchslime" "type,player"
   if type == "basic" (
     out_speed = 4
@@ -28,7 +26,7 @@ def "switchslime" "type,player"
     player1_knockback = out_knockback
     player1_gravity = out_weight
     player1_size = out_size
-  ) else
+  ) else (
     player2_type = type
     player2_speed = out_speed
     player2_knockback = out_knockback
@@ -226,7 +224,7 @@ def "render_ui"
   square 150 30 10 : c#333
 
   loc 999 -2 -160 35
-  text "1: <player1_health>%" 15 c#fff
+  text "1: <player1_health>%" 15 : c#fff
 
   loc 999 -2 20 35
   text "2: <player2_health>%" 15
@@ -280,13 +278,16 @@ def ssb_button "txt,location"
   text txt 10 : c#000
 endef
 
-def "level" "url"
+def "level" "url,name"
   multiplier = frame_width - 10 / url.imageinfo("width")
   w = url.imageinfo("width") * multiplier - 30
   h = window_height - 100
   if selected_stage == url "square w h 15 : c#000"
   square w h 10 : c#ddd
-  if clicked "selected_stage = url"
+  if clicked (
+    selected_stage = url
+    stage_name = name
+  )
   frame x_position - ( w / 2 ) y_position + ( h / 2 ) x_position + ( w / 2 ) y_position - ( h / 2 )
   image url frame_width - 40
   frame "clear"
@@ -420,15 +421,15 @@ def "main"
       frame_width = window_width - 450
       tot_lvls = 3
       if lvl_page == 1 (
-        level github ++ "assets/stages/spike.png"
+        level github ++ "assets/stages/spike.png" "spike"
         current_level_view = "Spike"
       )
       if lvl_page == 2 (
-        level github ++ "assets/stages/tree.png"
+        level github ++ "assets/stages/tree.png" "tree"
         current_level_view = "Tree"
       )
       if lvl_page == 3 (
-        level github ++ "assets/stages/mushroom.png"
+        level github ++ "assets/stages/mushroom.png" "mushroom"
         current_level_view = "Mushroom"
       )
       loc -2 -2 -40 40
@@ -501,43 +502,41 @@ def "main"
     direction 90
     stretch "x" 100
     goto stage_x stage_y
-    if stage.contains("tree") "change_y 60"
-    if stage.contains("mushroom") "change_y 105"
+    if stage_name == "tree" "change_y 60"
+    if stage_name == "mushroom" "change_y 105"
     image stage 1000 * zoom
 
     not_attack_1 = player1_anim != "attack1"
-
     if player1_anim != "walk" and not_attack_1 and ( "d".pressed or "a".pressed ) (
       player1_anim = "walk"
       player1_frame = 1
       player1_endfrm = 6
     ) else (
-      if player1_anim != "idle" and not_attack_1 or ( player1_anim == "attack1" and ( player1_frame == 1 ) ) (
+      if player1_anim != "idle" and not_attack_1 (
         player1_anim = "idle"
         player1_frame = 1
         player1_endfrm = 3
       )
     )
-    if player1_anim != "attack1" and "space".pressed (
+    if not_attack_1 and "space".pressed (
       player1_anim = "attack1"
       player1_frame = 1
       player1_endfrm = 7
     )
 
-  not_attack_2 = player2_anim != "attack1"
-
-   if player2_anim != "walk" and not_attack_2 and ( "right arrow".pressed or "left arrow".pressed ) (
+    not_attack_2 = player2_anim != "attack1"
+    if player2_anim != "walk" and not_attack_2 and ( "right arrow".pressed or "left arrow".pressed ) (
       player2_anim = "walk"
       player2_frame = 1
       player2_endfrm = 6
     ) else (
-      if player2_anim != "idle" and not_attack_2 or ( player2_anim == "attack1" and ( player2_frame == 1 ) ) (
+      if player2_anim != "idle" and not_attack_2 (
         player2_anim = "idle"
         player2_frame = 1
         player2_endfrm = 3
       )
     )
-    if player2_anim != "attack1" and "enter".pressed (
+    if not_attack_2 and "enter".pressed (
       player2_anim = "attack1"
       player2_frame = 1
       player2_endfrm = 7
@@ -608,11 +607,23 @@ def "main"
       p2_lst = timer
     )
 
-    if player1_frame > player1_endfrm "player1_frame = 1"
-    if player2_frame > player2_endfrm "player2_frame = 1"
-
     if player1_anim == "attack1" "attack 1 1"
     if player2_anim == "attack1" "attack 2 1"
+
+    if player1_frame > player1_endfrm (
+      if player1_anim == "attack1" (
+        player1_anim = "idle"
+        player1_endfrm = 3
+      )
+      player1_frame = 1
+    )
+    if player2_frame > player2_endfrm (
+      if player2_anim == "attack1" (
+        player2_anim = "idle"
+        player2_endfrm = 3
+      )
+      player2_frame = 1
+    )
 
     if player1_y < -2000 (
       player1_x = 0
@@ -635,44 +646,43 @@ def "main"
       zoom = 0.8
     )
   )
-  log stage
-  if stage == "spike" (
-    goto 0 -30
-    collide 1000 60 30 false
-    goto 250 165
-    collide 200 40 210 true
-    goto -320 195
-    collide 200 40 240 true
-    goto -20 330
-    collide 160 40 380 true
-  )
-  if stage == "tree" (
-    goto 0 -30
-    collide 1000 60 30 false
-    goto 350 120
-    collide 100 40 180 true
-    goto -320 195
-    collide 200 40 240 true
-    goto -20 330
-    collide 160 40 380 true
-  )
-  if stage == "mushroom" (
-    goto 0 -30
-    collide 1000 60 30 false
-    goto -260 80
-    collide 80 40 130 true
-    goto -340 290
-    collide 190 40 350 true
-    goto -160 240
-    collide 110 40 290 true
-    goto -60 260
-    collide 110 60 310 true
-    goto 30 280
-    collide 110 60 350 true
-    goto 300 380
-    collide 190 40 430 true
-  )
   if stage != 0 (
+    if stage_name == "spike" (
+      goto 0 -30
+      collide 1000 60 30 false
+      goto 250 165
+      collide 200 40 210 true
+      goto -320 195
+      collide 200 40 240 true
+      goto -20 330
+      collide 160 40 380 true
+    )
+    if stage_name == "tree" (
+      goto 0 -30
+      collide 1000 60 30 false
+      goto 350 120
+      collide 100 40 180 true
+      goto -320 195
+      collide 200 40 240 true
+      goto -20 330
+      collide 160 40 380 true
+    )
+    if stage_name == "mushroom" (
+      goto 0 -30
+      collide 1000 60 30 false
+      goto -260 80
+      collide 80 40 130 true
+      goto -340 290
+      collide 190 40 350 true
+      goto -160 240
+      collide 110 40 290 true
+      goto -60 260
+      collide 110 60 310 true
+      goto 30 280
+      collide 110 60 350 true
+      goto 300 380
+      collide 190 40 430 true
+    )
     render_players
     render_ui
   )

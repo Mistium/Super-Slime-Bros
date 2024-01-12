@@ -36,13 +36,13 @@ def "switchslime" "type,player"
   )
 endef
 
-def "switchability" "type,player"
+def "switchability" "swiabi_name,player"
   if player == 1 (
-    player1_ability = type
+    player1_ability = swiabi_name
     player1_ability_lastused = 0
   )
   if player == 2 (
-    player2_ability = type
+    player2_ability = swiabi_name
     player2_ability_lastused = 0
   )
 endef
@@ -87,17 +87,13 @@ def "reset_data"
   player1_target = -100
   player1_grounded = true
   player1_dir = "r"
+  player1_double = false
 
   player2_stretch = 100
   player2_target = 100
   player2_grounded = true
   player2_dir = "l"
-
-  player1_ability = "none"
-  player1_ability_lastused = 0
-
-  player2_ability = "none"  
-  player2_ability_lastused = 0
+  player2_double = false
 
   shake_x = 0
   shake_y = 0
@@ -120,9 +116,13 @@ abilities = {"heal":"Gain Back Your Health Over Time","double_jump":"Jump While 
 
 curlast = 0
 curframe = 0
+player1_ability = "none"
+player2_ability = "none"
 
 switchslime "basic" 1
 switchslime "basic" 2
+switchability "dash" 1
+switchability "dash" 2
 
 window "dimensions" 1200 700
 window "show"
@@ -221,18 +221,18 @@ def "ssb_button" "txt,location"
   text txt 10 : c#000 chx#-170
 endef
 
-def "slime" "type,anim,selected,p"
-  if selected == type "square 80 80 15 : c#000"
+def "slime" "sli_name,selected,p"
+  if selected == sli_name "square 80 80 15 : c#000"
   square 80 80 10 : c#eee
-  if clicked "switchslime type p"
-  image github ++ "assets/" ++ type ++ "/" ++ anim ++ "/" ++ curframe.round ++ ".png" 130
+  if clicked "switchslime sli_name p"
+  image github ++ "assets/" ++ sli_name ++ "/walk/" ++ curframe.round ++ ".png" 130
 endef
 
-def "ability" "type,selected,p"
-  if selected == type "square 80 80 15 : c#000"
+def "ability" "abi_name,selected,p"
+  if selected == abi_name "square 80 80 15 : c#000"
   square 80 80 10 : c#eee
-  if clicked "switchability type p"
-  image github ++ "assets/abilities/" ++ type ++ ".png" 80
+  if clicked "switchability abi_name p"
+  image github ++ "assets/abilities/" ++ abi_name ++ ".png" 80
 endef
 
 def "screenshake" "x_mag,y_mag"
@@ -308,9 +308,9 @@ if stage == 0 and ( page == "main" ) (
       text "Slime Type" 10
       loc 2 2 190 -140 + scroll_y
       square 280 80 25 : c#ddd
-      slime "basic" "walk" player1_type 1 : chx#-100
-      slime "light" "walk" player1_type 1 : chx#100
-      slime "heavy" "walk" player1_type 1 : chx#100
+      slime "basic" player1_type 1 : chx#-100
+      slime "light" player1_type 1 : chx#100
+      slime "heavy" player1_type 1 : chx#100
       loc 2 2 40 -210 + scroll_y
       text types.key(player1_type) 8 : c#000
 
@@ -333,9 +333,9 @@ if stage == 0 and ( page == "main" ) (
       text "Slime Type" 10
       loc 2 2 190 -540 + scroll_y
       square 280 80 25 : c#ddd
-      slime "basic" "walk" player2_type 2 : chx#-100
-      slime "light" "walk" player2_type 2 : chx#100
-      slime "heavy" "walk" player2_type 2 : chx#100
+      slime "basic" player2_type 2 : chx#-100
+      slime "light" player2_type 2 : chx#100
+      slime "heavy" player2_type 2 : chx#100
       loc 2 2 40 -615 + scroll_y
       text types.key(player2_type) 8 : c#000
 
@@ -500,12 +500,15 @@ if stage == 0 and ( page == "main" ) (
 
     player1_speedmod = player1_speed
     if player1_grounded "player1_speedmod += 2"
-    if player1_ability == "dash" and player1_grounded.not "player1_speedmod *= 4"
+    if player1_ability == "dash" and player1_grounded.not "player1_speedmod *= 2"
     if timer - player1_ifrm < 0.5 "player1_speedmod /= 4"
     player2_speedmod = player2_speed
     if player2_grounded "player2_speedmod += 2"
-    if player2_ability == "dash" and player2_grounded.not "player2_speedmod *= 4"
+    if player2_ability == "dash" and player2_grounded.not "player2_speedmod *= 2"
     if timer - player2_ifrm < 0.5 "player2_speedmod /= 4"
+
+    if player1_ability == "heal" "player1_health -= 0.02"
+    if player2_ability == "heal" "player2_health -= 0.02"
 
     if "d".pressed (
       player1_xvel += player1_speedmod
@@ -515,11 +518,18 @@ if stage == 0 and ( page == "main" ) (
       player1_xvel -= player1_speedmod
       player1_dir = "l"
     )
+    if player1_ability == "double_jump" and player1_double and "w".pressed and player1_grounded.not (
+      player1_yvel = 30
+      player1_stretch *= 0.3
+      player1_target *= 0.1
+      player1_double = false
+    )
     if "w".pressed and player1_grounded (
       player1_yvel = 30
       player1_grounded = false
       player1_stretch *= 0.3
       player1_target *= 0.1
+      player1_double = true
     )
   
     if "right arrow".pressed (
@@ -530,13 +540,23 @@ if stage == 0 and ( page == "main" ) (
       player2_xvel -= player2_speedmod
       player2_dir = "l"
     )
+    if player2_ability == "double_jump" and player2_double and "up arrow".pressed and player2_grounded.not (
+      say "2"
+      player2_yvel = 30
+      player2_stretch *= 0.3
+      player2_target *= 0.1
+      player2_double = false
+    )
     if "up arrow".pressed and player2_grounded (
       player2_yvel = 30
       player2_grounded = false
       player2_stretch *= 0.3
       player2_target *= 0.1
+      player2_startdou = true
     )
-
+    if player2_startdou and "up arrow".pressed.not (
+      player2_double = true
+    )
     player1_yvel -= player1_gravity
     player1_xvel *= 0.8
     player1_x += player1_xvel
@@ -662,11 +682,14 @@ if stage == 0 and ( page == "main" ) (
     loc 999 -2 -90 100
     square 150 30 10 : c#333
 
+    player1_health = player1_health.clamp(0,999)
+    player2_health = player2_health.clamp(0,999)
+
     loc 999 -2 -160 35
-    text "1: <player1_health>%" 15 : c#fff
+    text "1: <player1_health.round>%" 15 : c#fff
 
     loc 999 -2 20 35
-    text "2: <player2_health>%" 15
+    text "2: <player2_health.round>%" 15
 
     loc 999 -2 -150 100
     text "<player1_lives> Lives Left" 10

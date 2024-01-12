@@ -26,7 +26,8 @@ def "switchslime" "type,player"
     player1_knockback = out_knockback
     player1_gravity = out_weight
     player1_size = out_size
-  ) else (
+  )
+  if player == 2 (
     player2_type = type
     player2_speed = out_speed
     player2_knockback = out_knockback
@@ -39,7 +40,8 @@ def "switchability" "type,player"
   if player == 1 (
     player1_ability = type
     player1_ability_lastused = 0
-  ) else (
+  )
+  if player == 2 (
     player2_ability = type
     player2_ability_lastused = 0
   )
@@ -114,6 +116,7 @@ endef
 main_image = [0,3].random
 
 types = {"basic":"The Basic Slime :/","heavy":"Slower, heavier, less knockback","light":"Faster, lighter, more knockback"}
+abilities = {"heal":"Gain Back Your Health Over Time","double_jump":"Jump While Not Touching The Ground","dash":"Go Really Fast In The Air"}
 
 curlast = 0
 curframe = 0
@@ -188,62 +191,7 @@ def "attack" "player,attack_type"
   )
 endef
 
-def "render_players"
-  z = 20 * zoom
-  goto player1_x * zoom + cam_x player1_y * zoom + cam_y + 20
-  if player1_type == "heavy" "change_y 25 * zoom"
-  stretch "x" player1_stretch.int
-  image github ++ "assets/" ++ player1_type ++ "/" ++ player1_anim ++ "/" ++ player1_frame.round ++ ".png" 200 * player1_size * zoom
-  change_y 60 * zoom
-  square z z 10 * zoom : c#8a3d34
-  change_x -5 * zoom
-  text "1" 10 * zoom : c#fff
-  goto player2_x * zoom + cam_x player2_y * zoom + cam_y + 20
-  if player2_type == "heavy" "change_y 25 * zoom"
-  stretch "x" player2_stretch.int
-  image github ++ "assets/" ++ player2_type ++ "/" ++ player2_anim ++ "/" ++ player2_frame.round ++ ".png" 200 * player2_size * zoom
-  change_y 60 * zoom
-  square z z 10 * zoom : c#345b8a
-  change_x -5 * zoom
-  text "2" 10 * zoom : c#fff
-endef
-
-def "render_ui"
-  loc 999 -2 -90 35
-  square 150 50 20 : c#000
-  square 150 50 10 : c#8a3d34
-  loc 999 -2 90 35
-  square 150 50 20 : c#000
-  square 150 50 10 : c#345b8a
-  loc 999 -2 90 100
-  square 150 30 10 : c#333
-  loc 999 -2 -90 100
-  square 150 30 10 : c#333
-
-  loc 999 -2 -160 35
-  text "1: <player1_health>%" 15 : c#fff
-
-  loc 999 -2 20 35
-  text "2: <player2_health>%" 15
-
-  loc 999 -2 -150 100
-  text "<player1_lives> Lives Left" 10
-
-  loc 999 -2 30 100
-  text "<player2_lives> Lives Left" 10
-
-  loc 2 2 25 -25
-  square 30 30 15 : c#277564
-  icon "home" 1 : c#fff
-  if mouse_touching "cursor pointer"
-  if clicked (
-    stage = 0
-    page = "main"
-  )
-endef
-
 def "collide" "width,height,reset,droppable"
-  c #000
   hitbox width height player1_x player1_y - 50
   if p1_upordown and droppable or droppable.not and collided (
     player1_grounded = true
@@ -262,8 +210,7 @@ endef
 def "ssb_button" "txt,location"
   change mouse_x - x_position / 40 mouse_y - y_position / 40
   square 360 40 10 : c#fff
-  m = mouse_touching
-  if m (
+  if mouse_touching (
     if clicked and can (
       can = false
       page = location
@@ -271,23 +218,7 @@ def "ssb_button" "txt,location"
     change mouse_x - x_position / 20 mouse_y - y_position / 20
     square 360 40 20 : c#eee
   )
-  change -170
-  text txt 10 : c#000
-endef
-
-def "level" "url,name"
-  multiplier = frame_width - 10 / url.imageinfo("width")
-  w = url.imageinfo("width") * multiplier - 30
-  h = window_height - 100
-  if selected_stage == url "square w h 15 : c#000"
-  square w h 10 : c#ddd
-  if clicked (
-    selected_stage = url
-    stage_name = name
-  )
-  frame x_position - ( w / 2 ) y_position + ( h / 2 ) x_position + ( w / 2 ) y_position - ( h / 2 )
-  image url frame_width - 40
-  frame "clear"
+  text txt 10 : c#000 chx#-170
 endef
 
 def "slime" "type,anim,selected,p"
@@ -309,8 +240,11 @@ def "screenshake" "x_mag,y_mag"
   shake_y_vel += y_mag * 10
 endef
 
-def "main"
-  if stage == 0 and ( page == "main" ) (
+reset_data
+
+mainloop:
+zoom += 1 - zoom / 20
+if stage == 0 and ( page == "main" ) (
     loc -5 -5 mouse_x / 10 mouse_y / 10
     image github ++ "assets/stages/spike.png" window_width + 700 / 2
   )
@@ -363,53 +297,57 @@ def "main"
       y = y_position
       loc 2 -2 400 150
       change mouse_x - x_position / 50 mouse_y - y_position / 50
-      frame x y x_position y_position 750
+      frame x y x_position y_position 770
 
-      loc 2 2 190 -190 + scroll_y
-      square 280 320 50 : c#8a3d34
-      square 280 320 40 : c#fff
-      change -155 160
+      loc 2 2 190 -200 + scroll_y
+      square 280 340 50 : c#8a3d34
+      square 280 340 40 : c#fff
+      change -150 160
       text "Player 1" 13 : c#000
-      loc 2 2 35 -70 + scroll_y
+      loc 2 2 40 -70 + scroll_y
       text "Slime Type" 10
       loc 2 2 190 -140 + scroll_y
       square 280 80 25 : c#ddd
       slime "basic" "walk" player1_type 1 : chx#-100
       slime "light" "walk" player1_type 1 : chx#100
       slime "heavy" "walk" player1_type 1 : chx#100
-      loc 2 2 35 -210 + scroll_y
+      loc 2 2 40 -210 + scroll_y
       text types.key(player1_type) 8 : c#000
 
-      loc 2 2 35 -240 + scroll_y
+      loc 2 2 40 -240 + scroll_y
       text "Slime Ability" 10
       loc 2 2 190 -310 + scroll_y
       square 280 80 25 : c#ddd
       ability "dash" player1_ability 1 : chx#-100
       ability "heal" player1_ability 1 : chx#100
       ability "double_jump" player1_ability 1 : chx#100
+      loc 2 2 40 -375 + scroll_y
+      text abilities.key(player1_ability) 8 : c#000
 
-      loc 2 2 190 -570 + scroll_y
-      square 280 320 50 : c#345b8a
-      square 280 320 40 : c#fff
-      change -155 160
+      loc 2 2 190 -600 + scroll_y
+      square 280 340 50 : c#345b8a
+      square 280 340 40 : c#fff
+      change -150 160
       text "Player 2" 13 : c#000
-      loc 2 2 35 -450 + scroll_y
+      loc 2 2 40 -470 + scroll_y
       text "Slime Type" 10
-      loc 2 2 190 -520 + scroll_y
+      loc 2 2 190 -540 + scroll_y
       square 280 80 25 : c#ddd
       slime "basic" "walk" player2_type 2 : chx#-100
       slime "light" "walk" player2_type 2 : chx#100
       slime "heavy" "walk" player2_type 2 : chx#100
-      loc 2 2 35 -590 + scroll_y
+      loc 2 2 40 -615 + scroll_y
       text types.key(player2_type) 8 : c#000
 
-      loc 2 2 35 -620 + scroll_y
+      loc 2 2 40 -640 + scroll_y
       text "Slime Ability" 10
-      loc 2 2 190 -690 + scroll_y
+      loc 2 2 190 -710 + scroll_y
       square 280 80 25 : c#ddd
       ability "dash" player2_ability 2 : chx#-100
       ability "heal" player2_ability 2 : chx#100
       ability "double_jump" player2_ability 2 : chx#100
+      loc 2 2 40 -775 + scroll_y
+      text abilities.key(player2_ability) 8 : c#000
 
       frame "clear"
       loc 999 -2 200 40
@@ -418,17 +356,32 @@ def "main"
       frame_width = window_width - 450
       tot_lvls = 3
       if lvl_page == 1 (
-        level github ++ "assets/stages/spike.png" "spike"
+        url = github ++ "assets/stages/spike.png"
+        name = "spike"
         current_level_view = "Spike"
       )
       if lvl_page == 2 (
-        level github ++ "assets/stages/tree.png" "tree"
+        url = github ++ "assets/stages/tree.png"
+        name = "tree"
         current_level_view = "Tree"
       )
       if lvl_page == 3 (
-        level github ++ "assets/stages/mushroom.png" "mushroom"
+        url = github ++ "assets/stages/mushroom.png"
+        name = "mushroom"
         current_level_view = "Mushroom"
       )
+      multiplier = frame_width - 10 / url.imageinfo("width")
+      w = url.imageinfo("width") * multiplier - 30
+      h = window_height - 100
+      if selected_stage == url "square w h 15 : c#000"
+      square w h 10 : c#ddd
+      if clicked (
+        selected_stage = url
+        stage_name = name
+      )
+      frame x_position - ( w / 2 ) y_position + ( h / 2 ) x_position + ( w / 2 ) y_position - ( h / 2 )
+      image url frame_width - 40
+      frame "clear"
       loc -2 -2 -40 40
       square 30 30 15 : c#000
       square 30 30 10 : c#ddd
@@ -473,7 +426,7 @@ def "main"
     shake_x_mag -= shake_x_mag * 1.5
     shake_y_mag -= shake_y_mag * 1.5
     cam_x += cam_x_target - cam_x / 10
-    cam_y += cam_y_target - cam_y / 1 0
+    cam_y += cam_y_target - cam_y / 10
 
     guy1_stretch += 100 - guy1_stretch / 10
     guy1_direction += 90 - guy1_direction / 10
@@ -545,18 +498,14 @@ def "main"
     player2_target = -100
     if player2_dir == "r" "player2_target = 100"
 
-    // increase speed while on ground
     player1_speedmod = player1_speed
     if player1_grounded "player1_speedmod += 2"
-    if timer - player1_ifrm < 0.5 (
-      player1_speedmod /= 4
-    )
-
+    if player1_ability == "dash" and player1_grounded.not "player1_speedmod *= 4"
+    if timer - player1_ifrm < 0.5 "player1_speedmod /= 4"
     player2_speedmod = player2_speed
     if player2_grounded "player2_speedmod += 2"
-    if timer - player2_ifrm < 0.5 (
-      player2_speedmod /= 4
-    )
+    if player2_ability == "dash" and player2_grounded.not "player2_speedmod *= 4"
+    if timer - player2_ifrm < 0.5 "player2_speedmod /= 4"
 
     if "d".pressed (
       player1_xvel += player1_speedmod
@@ -685,17 +634,56 @@ def "main"
       goto 300 380
       collide 190 40 430 true
     )
-    render_players
-    render_ui
+    z = 20 * zoom
+    goto player1_x * zoom + cam_x player1_y * zoom + cam_y + 20
+    if player1_type == "heavy" "change_y 25 * zoom"
+    stretch "x" player1_stretch.int
+    image github ++ "assets/" ++ player1_type ++ "/" ++ player1_anim ++ "/" ++ player1_frame.round ++ ".png" 200 * player1_size * zoom
+    change_y 60 * zoom
+    square z z 10 * zoom : c#8a3d34
+    change_x -5 * zoom
+    text "1" 10 * zoom : c#fff
+    goto player2_x * zoom + cam_x player2_y * zoom + cam_y + 20
+    if player2_type == "heavy" "change_y 25 * zoom"
+    stretch "x" player2_stretch.int
+    image github ++ "assets/" ++ player2_type ++ "/" ++ player2_anim ++ "/" ++ player2_frame.round ++ ".png" 200 * player2_size * zoom
+    change_y 60 * zoom
+    square z z 10 * zoom : c#345b8a
+    change_x -5 * zoom
+    text "2" 10 * zoom : c#fff
+    loc 999 -2 -90 35
+    square 150 50 20 : c#000
+    square 150 50 10 : c#8a3d34
+    loc 999 -2 90 35
+    square 150 50 20 : c#000
+    square 150 50 10 : c#345b8a
+    loc 999 -2 90 100
+    square 150 30 10 : c#333
+    loc 999 -2 -90 100
+    square 150 30 10 : c#333
+
+    loc 999 -2 -160 35
+    text "1: <player1_health>%" 15 : c#fff
+
+    loc 999 -2 20 35
+    text "2: <player2_health>%" 15
+
+    loc 999 -2 -150 100
+    text "<player1_lives> Lives Left" 10
+
+    loc 999 -2 30 100
+    text "<player2_lives> Lives Left" 10
+
+    loc 2 2 25 -25
+    square 30 30 15 : c#277564
+    icon "home" 1 : c#fff
+    if mouse_touching "cursor pointer"
+    if clicked (
+      stage = 0
+      page = "main"
+    )
   )
   if mouse_down.not "can = true"
-endef
-
-reset_data
-
-mainloop:
-zoom += 1 - zoom / 20
-main
 frame "clear"
 
 loc -2 -2 -80 20

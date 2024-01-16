@@ -176,8 +176,9 @@ endef
 def "attack" "player,attack_type"
   p1_ifrm_temp = player1_ifrm
   p2_ifrm_temp = player2_ifrm
+
   if player == 1 and ( attack_type == 1 ) (
-    if timer - player1_ifrm > 0.5 (
+    if timer - p1_ifrm_temp > 0.5 (
       goto player1_x player1_y
       change -40 player1_xvel
       if player1_dir == "r" "change 80"
@@ -186,7 +187,7 @@ def "attack" "player,attack_type"
     )
   )
   if player == 2 and ( attack_type == 1 ) (
-    if timer - player2_ifrm > 0.5 (
+    if timer - p2_ifrm_temp > 0.5 (
       goto player2_x player2_y
       change -40 player2_vel
       if player2_dir == "r" "change 80"

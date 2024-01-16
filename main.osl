@@ -134,7 +134,7 @@ page = "main"
 window_colour = #fff
 
 def "p1_attack"
-  if timer - player2_ifrm > 0.2 (
+  if timer - p2_ifrm_temp > 0.2 (
     player2_health += 2
     player2_yvel += player2_health + 30 / player2_knockback / 10
     player2_y += 20
@@ -154,7 +154,7 @@ def "p1_attack"
 endef
 
 def "p2_attack"
-  if timer - player1_ifrm > 0.2 (
+  if timer - p1_ifrm_temp > 0.2 (
     player1_health += 2
     player1_yvel += player1_health + 30 / player1_knockback / 10
     player1_y += 20
@@ -174,6 +174,8 @@ def "p2_attack"
 endef
 
 def "attack" "player,attack_type"
+  p1_ifrm_temp = player1_ifrm
+  p2_ifrm_temp = player2_ifrm
   if player == 1 and ( attack_type == 1 ) (
     if timer - player1_ifrm > 0.5 (
       goto player1_x player1_y

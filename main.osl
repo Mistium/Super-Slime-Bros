@@ -658,6 +658,9 @@ if stage == 0 and ( page == "main" ) (
     if player1_ability == "heal" "player1_health -= 0.02"
     if player2_ability == "heal" "player2_health -= 0.02"
 
+    player1_health = player1_health.clamp(0,9999)
+    player2_health = player2_health.clamp(0,9999)
+
     if "d".pressed (
       player1_xvel += player1_speedmod
       player1_dir = "r"

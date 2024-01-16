@@ -25,14 +25,14 @@ def "switchslime" "type,player"
     player1_speed = out_speed
     player1_knockback = out_knockback
     player1_gravity = out_weight
-    player1_size = out_size
+    player1_size = out_size * 200
   )
   if player == 2 (
     player2_type = type
     player2_speed = out_speed
     player2_knockback = out_knockback
     player2_gravity = out_weight
-    player2_size = out_size
+    player2_size = out_size * 200
   )
 endef
 
@@ -126,6 +126,7 @@ switchability "dash" 2
 
 window "dimensions" 1200 700
 window "show"
+window "maximise"
 
 stage = 0
 selected_stage = 0
@@ -223,14 +224,14 @@ def "ssb_button" "txt,location"
   text txt 10 : c#000 chx#-170
 endef
 
-def "slime" "sli_name,selected,p"
+def "slime" "sli_name,p"
   if selected == sli_name "square 80 80 15 : c#000"
   square 80 80 10 : c#eee
   if clicked "switchslime sli_name p"
   image github ++ "assets/" ++ sli_name ++ "/walk/" ++ curframe.round ++ ".png" 130
 endef
 
-def "ability" "abi_name,selected,p"
+def "ability" "abi_name,p"
   if selected == abi_name "square 80 80 15 : c#000"
   square 80 80 10 : c#eee
   if clicked "switchability abi_name p"
@@ -250,6 +251,26 @@ def "load" "link"
   loading_total += 1
 endef
 
+def "update_stage_data"
+  if lvl_page == 1 (
+    url = github ++ "assets/stages/spike.png"
+    name = "spike"
+    current_level_view = "Spike"
+  )
+  if lvl_page == 2 (
+    url = github ++ "assets/stages/tree.png"
+    name = "tree"
+    current_level_view = "Tree"
+  )
+  if lvl_page == 3 (
+    url = github ++ "assets/stages/mushroom.png"
+    name = "mushroom"
+    current_level_view = "Mushroom"
+  )
+  selected_stage = url
+  stage_name = name
+endef
+
 reset_data
 
 loading_total = 0
@@ -261,15 +282,64 @@ loop 6 (
   load "assets/basic/walk/" ++ count
 )
 count = 0
-loop 6 (
+loop 3 (
   count += 1
-  load "assets/basic/run/" ++ count
+  load "assets/basic/idle/" ++ count
 )
 count = 0
 loop 7 (
   count += 1
   load "assets/basic/attack1/" ++ count
 )
+count = 0
+loop 6 (
+  count += 1
+  load "assets/heavy/walk/" ++ count
+)
+count = 0
+loop 3 (
+  count += 1
+  load "assets/heavy/idle/" ++ count
+)
+count = 0
+loop 7 (
+  count += 1
+  load "assets/heavy/attack1/" ++ count
+)
+count = 0
+loop 6 (
+  count += 1
+  load "assets/light/walk/" ++ count
+)
+count = 0
+loop 3 (
+  count += 1
+  load "assets/light/idle/" ++ count
+)
+count = 0
+loop 7 (
+  count += 1
+  load "assets/light/attack1/" ++ count
+)
+count = -1
+loop 9 (
+  count += 1
+  load "assets/guy/" ++ count
+)
+load "assets/abilities/dash"
+load "assets/abilities/double_jump"
+load "assets/abilities/heal"
+
+load "assets/ui/controls"
+
+load "assets/stages/mushroom"
+load "assets/stages/spike"
+load "assets/stages/tree"
+
+current_level_view = "Spike"
+tot_lvls = 3
+selected_stage = github ++ "assets/stages/spike.png"
+stage_name = "spike"
 
 mainloop:
 
@@ -278,24 +348,69 @@ if loading.len > 0 (
   loop loading.len (
     count += 1
     if loading.[count].imageinfo("loaded") (
+      loading_cur = loading.[count]
       loading = loading.delete(count)
       count -= 1
     )
     image loading.[count] 0
   )
   loc 999 999 0 0
-  load_percent = loading.len / loading_total
+  load_percent = 1 - ( loading.len / loading_total )
   // calculates the percentage of images loaded
+
   c #333
-  bar 300 20 10 1 - load_percent
+  bar 300 20 10 load_percent
+  loc 999 999 -130 -30
+  text "<load_percent.multiply(100).round>% Loaded" 10 : c#000
   loc 2 2 20 -20
-  text "Loading:<loading.[1]>" 10 : c#000
+  text "Loading: <loading_cur>" 10 : c#000
   // renders a loading bar for the currently loading images
 
-  import "win-buttons"
-exit
+  loc 2 -2 100 30
+  square 170 30 10 : c#ccc
+  if clicked "window stop"
+
+  loc 2 -2 30 30
+  icon "close" 0.7 : c#000
+  text "Close Game" 10 : chx#20
+
+  exit
 )
 zoom += 1 - zoom / 20
+if page == "win" (
+  loc 2 2 25 -25
+  square 30 30 15 : c#277564
+  icon "home" 1 : c#fff
+  if mouse_touching "cursor pointer"
+  if clicked (
+    stage = 0
+    page = "main"
+  )
+  if player1_lives > 0 (
+    player_image = "https://raw.githubusercontent.com/Mistium/Super-Slime-Bros/main/assets/" ++ player1_type ++ "/walk/1.png"
+    txt = "Player 1 Wins!"
+  ) else (
+    player_image = "https://raw.githubusercontent.com/Mistium/Super-Slime-Bros/main/assets/" ++ player2_type ++ "/walk/1.png"
+    txt = "Player 2 Wins!"
+  )
+  t = timer * 150
+  width += 100 - ( t.sin * 5 ) * 10 - width / 5
+  height += 100 + ( t.sin * 5 ) * 10 - height / 5
+  logo_dir += 90 - logo_dir / 5
+  goto 0 110
+  direction logo_dir
+  image player_image width height
+  if clicked and can (
+    can = false
+    width = 200
+    height = 200
+    logo_dir = [80,100].random
+  )
+  if mouse_down.not "can = true"
+  goto "Player 1 Wins!".len * -10 height * -0.4 + 210
+  text txt 20 : c#000
+  exit
+)
 if stage == 0 and ( page == "main" ) (
     loc -5 -5 mouse_x / 10 mouse_y / 10
     image github ++ "assets/stages/spike.png" window_width + 700 / 2
@@ -305,8 +420,7 @@ if stage == 0 and ( page == "main" ) (
     change mouse_x - x_position / 80 mouse_y - y_position / 80
     square 400 window_height - 30 10 : c#ddd
     if page == "main" (
-      loc 2 2 30 -50
-      change mouse_x - x_position / 60 mouse_y - y_position / 60
+      loc 2 2 mouse_x - x_position / 60 + 30 mouse_y - y_position / 60 - 50
       text "Super Slime Bros" 20 : c#000
 
       loc 2 2 210 -120
@@ -319,36 +433,29 @@ if stage == 0 and ( page == "main" ) (
       loc 2 2 210 -240
       ssb_button "Quit Game" "quit"
 
-      loc -2 2 -170 -170
-      change mouse_x - x_position / 50 mouse_y - y_position / 50
+      loc -2 2 mouse_x - x_position / 50 - 170 mouse_y - y_position / 50 - 170
       square 300 300 10 : c#ddd
       image github ++ "assets/ui/controls.png" 320
     )
     if page == "level_select" (
-      loc 2 2 30 -50
-      change mouse_x - x_position / 60 mouse_y - y_position / 60
+      loc 2 2 mouse_x - x_position / 60 + 30 mouse_y - y_position / 60 - 50
       text "Level Select" 20 : c#000
-
       loc 2 -2 210 120
-      if selected_stage != 0 "ssb_button Play play"
-      txt = "Select a stage to play"
-      loc 2 -2 40 120
-      change mouse_x - x_position / 40 mouse_y - y_position / 40
-      if selected_stage == 0 "text txt 10"
+      ssb_button Play play
       loc 2 -2 210 60
       ssb_button "Back to Main Menu" "main"
 
-      if timer - 0.15 > curlast "curframe += 1"
-      if timer - 0.15 > curlast "curlast = timer"
+      if timer - 0.15 > curlast (
+        curframe += 1
+        curlast = timer
+      )
       if curframe > 6 "curframe = 1"
 
       c #888
-      loc 2 2 0 -80
-      change mouse_x - x_position / 50 mouse_y - y_position / 50
+      loc 2 2 mouse_x - x_position / 50 mouse_y - y_position / 50 - 80
       x = x_position
       y = y_position
-      loc 2 -2 400 150
-      change mouse_x - x_position / 50 mouse_y - y_position / 50
+      loc 2 -2 mouse_x - x_position / 50 + 400 mouse_y - y_position / 50 + 180
       frame x y x_position y_position 770
 
       loc 2 2 190 -200 + scroll_y
@@ -360,19 +467,21 @@ if stage == 0 and ( page == "main" ) (
       text "Slime Type" 10
       loc 2 2 190 -140 + scroll_y
       square 280 80 25 : c#ddd
-      slime "basic" player1_type 1 : chx#-100
-      slime "light" player1_type 1 : chx#100
-      slime "heavy" player1_type 1 : chx#100
+      selected = player1_type
+      slime "basic" 1 : chx#-100
+      slime "light" 1 : chx#100
+      slime "heavy" 1 : chx#100
       loc 2 2 40 -210 + scroll_y
-      text types.key(player1_type) 8 : c#000
+      text types.key(selected) 8 : c#000
 
       loc 2 2 40 -240 + scroll_y
       text "Slime Ability" 10
       loc 2 2 190 -310 + scroll_y
       square 280 80 25 : c#ddd
-      ability "dash" player1_ability 1 : chx#-100
-      ability "heal" player1_ability 1 : chx#100
-      ability "double_jump" player1_ability 1 : chx#100
+      selected = player1_ability
+      ability "dash" 1 : chx#-100
+      ability "heal" 1 : chx#100
+      ability "double_jump" 1 : chx#100
       loc 2 2 40 -375 + scroll_y
       text abilities.key(player1_ability) 8 : c#000
 
@@ -385,19 +494,21 @@ if stage == 0 and ( page == "main" ) (
       text "Slime Type" 10
       loc 2 2 190 -540 + scroll_y
       square 280 80 25 : c#ddd
-      slime "basic" player2_type 2 : chx#-100
-      slime "light" player2_type 2 : chx#100
-      slime "heavy" player2_type 2 : chx#100
+      selected = player2_type
+      slime "basic" 2 : chx#-100
+      slime "light" 2 : chx#100
+      slime "heavy" 2 : chx#100
       loc 2 2 40 -615 + scroll_y
-      text types.key(player2_type) 8 : c#000
+      text types.key(selected) 8 : c#000
 
       loc 2 2 40 -640 + scroll_y
       text "Slime Ability" 10
       loc 2 2 190 -710 + scroll_y
       square 280 80 25 : c#ddd
-      ability "dash" player2_ability 2 : chx#-100
-      ability "heal" player2_ability 2 : chx#100
-      ability "double_jump" player2_ability 2 : chx#100
+      selected = player2_ability
+      ability "dash" 2 : chx#-100
+      ability "heal" 2 : chx#100
+      ability "double_jump" 2 : chx#100
       loc 2 2 40 -775 + scroll_y
       text abilities.key(player2_ability) 8 : c#000
 
@@ -405,34 +516,12 @@ if stage == 0 and ( page == "main" ) (
       loc 999 -2 200 40
       text "<lvl_page>/<tot_lvls> (<current_level_view>)" 10 : c#000
       loc 999 999 220 30
-      frame_width = window_width - 450
-      tot_lvls = 3
-      if lvl_page == 1 (
-        url = github ++ "assets/stages/spike.png"
-        name = "spike"
-        current_level_view = "Spike"
-      )
-      if lvl_page == 2 (
-        url = github ++ "assets/stages/tree.png"
-        name = "tree"
-        current_level_view = "Tree"
-      )
-      if lvl_page == 3 (
-        url = github ++ "assets/stages/mushroom.png"
-        name = "mushroom"
-        current_level_view = "Mushroom"
-      )
-      multiplier = frame_width - 10 / url.imageinfo("width")
-      w = url.imageinfo("width") * multiplier - 30
+      w = selected_stage.imageinfo("width") * ( window_width - 450 - 10 / selected_stage.imageinfo("width") ) - 30
       h = window_height - 100
-      if selected_stage == url "square w h 15 : c#000"
+      square w h 15 : c#000
       square w h 10 : c#ddd
-      if clicked (
-        selected_stage = url
-        stage_name = name
-      )
       frame x_position - ( w / 2 ) y_position + ( h / 2 ) x_position + ( w / 2 ) y_position - ( h / 2 )
-      image url frame_width - 40
+      image selected_stage frame_width - 40
       frame "clear"
       loc -2 -2 -40 40
       square 30 30 15 : c#000
@@ -442,6 +531,8 @@ if stage == 0 and ( page == "main" ) (
       if clicked and can (
         can = false
         lvl_page += 1
+        if lvl_page > tot_lvls "lvl_page = 1"
+        update_stage_data
       )
       loc 2 -2 480 40
       square 30 30 15 : c#000
@@ -451,10 +542,10 @@ if stage == 0 and ( page == "main" ) (
       if clicked and can (
         can = false
         lvl_page -= 1
+        if lvl_page < 1 "lvl_page = tot_lvls"
+        update_stage_data
       )
     )
-    if lvl_page < 1 "lvl_page = tot_lvls"
-    if lvl_page > tot_lvls "lvl_page = 1"
   )
   if page == "play" (
     page = 0
@@ -471,14 +562,12 @@ if stage == 0 and ( page == "main" ) (
   if stage != 0 (
     p1_upordown = "s".pressed.not and "w".pressed.not
     p2_upordown = "down arrow".pressed.not and "up arrow".pressed.not
-    cam_x_target = player1_x + player2_x / -2
-    cam_y_target = player1_y + player2_y / -2
     shake_x += shake_x_mag
     shake_y += shake_y_mag
     shake_x_mag -= shake_x_mag * 1.5
     shake_y_mag -= shake_y_mag * 1.5
-    cam_x += cam_x_target - cam_x / 10
-    cam_y += cam_y_target - cam_y / 10
+    cam_x += player1_x + player2_x / -2 - cam_x / 10
+    cam_y += player1_y + player2_y / -2 - cam_y / 10
 
     guy1_stretch += 100 - guy1_stretch / 10
     guy1_direction += 90 - guy1_direction / 10
@@ -544,16 +633,23 @@ if stage == 0 and ( page == "main" ) (
       player2_endfrm = 7
     )
 
-    player1_target = -100
-    if player1_dir == "r" "player1_target = 100"
+    if player1_dir == "r" (
+      player1_target = 100
+    ) else (
+      player1_target = -100
+    )
 
-    player2_target = -100
-    if player2_dir == "r" "player2_target = 100"
+    if player2_dir == "r" (
+      player2_target = 100
+    ) else (
+      player2_target = -100
+    )
 
     player1_speedmod = player1_speed
     if player1_grounded "player1_speedmod += 2"
     if player1_ability == "dash" and player1_grounded.not "player1_speedmod *= 2"
     if timer - player1_ifrm < 0.5 "player1_speedmod /= 4"
+
     player2_speedmod = player2_speed
     if player2_grounded "player2_speedmod += 2"
     if player2_ability == "dash" and player2_grounded.not "player2_speedmod *= 2"
@@ -670,6 +766,13 @@ if stage == 0 and ( page == "main" ) (
       zoom = 0.8
     )
 
+    if player1_lives < 1 (
+      page = "win"
+    )
+    if player2_lives < 1 (
+      page = "win"
+    )
+
     if stage_name == "spike" (
       goto 0 -30
       collide 1000 60 30 false
@@ -706,36 +809,38 @@ if stage == 0 and ( page == "main" ) (
       goto 300 380
       collide 190 40 430 true
     )
+
     z = 20 * zoom
     goto player1_x * zoom + cam_x player1_y * zoom + cam_y + 20
     if player1_type == "heavy" "change_y 25 * zoom"
     stretch "x" player1_stretch.int
-    image github ++ "assets/" ++ player1_type ++ "/" ++ player1_anim ++ "/" ++ player1_frame.round ++ ".png" 200 * player1_size * zoom
+    image "https://raw.githubusercontent.com/Mistium/Super-Slime-Bros/main/assets/" ++ player1_type ++ "/" ++ player1_anim ++ "/" ++ player1_frame.round ++ ".png" player1_size * zoom
     change_y 60 * zoom
     square z z 10 * zoom : c#8a3d34
     change_x -5 * zoom
     text "1" 10 * zoom : c#fff
+
     goto player2_x * zoom + cam_x player2_y * zoom + cam_y + 20
     if player2_type == "heavy" "change_y 25 * zoom"
     stretch "x" player2_stretch.int
-    image github ++ "assets/" ++ player2_type ++ "/" ++ player2_anim ++ "/" ++ player2_frame.round ++ ".png" 200 * player2_size * zoom
+    image "https://raw.githubusercontent.com/Mistium/Super-Slime-Bros/main/assets/" ++ player2_type ++ "/" ++ player2_anim ++ "/" ++ player2_frame.round ++ ".png" player2_size * zoom
     change_y 60 * zoom
     square z z 10 * zoom : c#345b8a
     change_x -5 * zoom
     text "2" 10 * zoom : c#fff
+
     loc 999 -2 -90 35
     square 150 50 20 : c#000
     square 150 50 10 : c#8a3d34
+
     loc 999 -2 90 35
     square 150 50 20 : c#000
     square 150 50 10 : c#345b8a
+
     loc 999 -2 90 100
     square 150 30 10 : c#333
     loc 999 -2 -90 100
     square 150 30 10 : c#333
-
-    player1_health = player1_health.clamp(0,999)
-    player2_health = player2_health.clamp(0,999)
 
     loc 999 -2 -160 35
     text "1: <player1_health.round>%" 15 : c#fff
@@ -758,7 +863,7 @@ if stage == 0 and ( page == "main" ) (
       page = "main"
     )
   )
-  if mouse_down.not "can = true"
+if mouse_down.not "can = true"
 frame "clear"
 
 loc -2 -2 -80 20
